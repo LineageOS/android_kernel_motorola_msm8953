@@ -215,6 +215,9 @@
 
 #define ADSP2_LOCK_REGION_SHIFT              16
 
+static int wm_adsp_init_host_buf_info(struct wm_adsp *dsp);
+static void wm_adsp_free_host_buf_info(struct wm_adsp *dsp);
+
 struct wm_adsp_buf {
 	struct list_head list;
 	void *buf;
@@ -2246,7 +2249,18 @@ static int wm_adsp_get_features(struct wm_adsp *dsp)
 	case 0x70036:
 	case 0x8000d:
 	case 0x80053:
+	case 0x9000d:
+		/* ez2control */
 		dsp->fw_features.ez2control_trigger = true;
+		dsp->fw_features.host_read_buf = true;
+		break;
+	case 0x4001e:
+	case 0x6001e:
+	case 0x7001e:
+	case 0x8001e:
+	case 0x9001e:
+		/* trace firmware */
+		dsp->fw_features.host_read_buf = true;
 		break;
 	case 0x40019:
 	case 0x4001f:
@@ -2620,6 +2634,17 @@ int wm_adsp2_event(struct snd_soc_dapm_widget *w,
 
 		if (ret != 0)
 			goto err;
+
+		if (dsp->fw_features.host_read_buf) {
+			ret = wm_adsp_init_host_buf_info(dsp);
+			if (ret < 0) {
+				adsp_err(dsp,
+					"Failed to init host buffer (%d)\n",
+					ret);
+				goto err;
+			}
+		}
+
 		break;
 
 	case SND_SOC_DAPM_PRE_PMD:
@@ -2645,6 +2670,13 @@ int wm_adsp2_event(struct snd_soc_dapm_widget *w,
 
 		wm_adsp_stop_watchdog(dsp);
 
+		if (dsp->fw_features.host_read_buf) {
+			adsp_dbg(dsp, "host buf invalidated by DSP shutdown\n");
+			wm_adsp_free_host_buf_info(dsp);
+		}
+
+		dsp->fw_id = 0;
+		dsp->fw_id_version = 0;
 		dsp->running = false;
 
 		wm_adsp_debugfs_save_wmfwname(dsp, NULL);
@@ -3085,6 +3117,16 @@ static int wm_adsp_populate_buffer_regions(struct wm_adsp *dsp)
 
 	lockdep_assert_held(&dsp->host_buf_info.lock);
 
+	BUG_ON(dsp->host_buf_info.host_regions != NULL);
+
+	dsp->host_buf_info.host_regions =
+		kcalloc(dsp->firmwares[dsp->fw].caps->num_host_regions,
+			sizeof(*dsp->host_buf_info.host_regions),
+			GFP_KERNEL);
+
+	if (!dsp->host_buf_info.host_regions)
+		return -ENOMEM;
+
 	for (i = 0; i < dsp->firmwares[dsp->fw].caps->num_host_regions; ++i) {
 		region = &dsp->host_buf_info.host_regions[i];
 
@@ -3207,6 +3249,21 @@ out:
 	return ret;
 }
 
+static void wm_adsp_free_host_buf_info(struct wm_adsp *dsp)
+{
+	struct wm_adsp_buffer_region *host_regions;
+
+	mutex_lock(&dsp->host_buf_info.lock);
+
+	host_regions = dsp->host_buf_info.host_regions;
+	dsp->host_buf_info.host_regions = NULL;
+	dsp->host_buf_info.host_buf_ptr = 0;
+
+	mutex_unlock(&dsp->host_buf_info.lock);
+
+	kfree(host_regions);
+}
+
 static int wm_adsp_read_buffer(struct wm_adsp *dsp, int32_t read_index,
 			       int avail)
 {
@@ -3225,6 +3282,7 @@ static int wm_adsp_read_buffer(struct wm_adsp *dsp, int32_t read_index,
 	int i, ret;
 
 	lockdep_assert_held(&dsp->host_buf_info.lock);
+	BUG_ON(!host_regions);	/* should have been checked by caller */
 
 	/* Calculate read parameters */
 	for (i = 0; i < dsp->firmwares[dsp->fw].caps->num_host_regions; ++i) {
@@ -3292,6 +3350,10 @@ static int wm_adsp_read_buffer2(struct wm_adsp *adsp, int32_t read_index,
 		return -EINVAL;
 	}
 	capt_buf = (u8 *)adsp->capt_buf2.buf;
+
+	lockdep_assert_held(&adsp->host_buf_info2.lock);
+	BUG_ON(!adsp->host_buf_info2.host_regions);	/* should have been checked by caller */
+
 	/* Calculate read parameters */
 	for (i = 0; i < adsp->firmwares[adsp->fw].caps->num_host_regions; ++i) {
 		if (read_index < adsp->host_buf_info2.host_regions[i].cumulative_size)
@@ -3363,6 +3425,7 @@ static int wm_adsp_capture_block(struct wm_adsp *dsp, int *avail)
 
 
 	lockdep_assert_held(&dsp->host_buf_info.lock);
+	BUG_ON(!host_regions);	/* should have been checked by caller */
 
 	/* Get current host buffer status */
 	ret = wm_adsp_host_buffer_read(dsp,
@@ -3423,6 +3486,7 @@ static int wm_adsp_capture_block2(struct wm_adsp *adsp, int *avail)
 	int ret;
 
 	lockdep_assert_held(&adsp->host_buf_info2.lock);
+	BUG_ON(!host_regions2);	/* should have been checked by caller */
 
 	if (!host_regions2 || last_region < 0 || !avail) {
 		adsp_err(adsp, "Invalid argument\n");
@@ -3503,23 +3567,6 @@ int wm_adsp_stream_alloc(struct wm_adsp *dsp,
 		}
 	}
 
-	mutex_lock(&dsp->host_buf_info.lock);
-
-	ret = 0;
-	if (!dsp->host_buf_info.host_regions) {
-		size = dsp->firmwares[dsp->fw].caps->num_host_regions *
-		       sizeof(*dsp->host_buf_info.host_regions);
-		dsp->host_buf_info.host_regions = kzalloc(size, GFP_KERNEL);
-
-		if (!dsp->host_buf_info.host_regions)
-			ret = -ENOMEM;
-	}
-
-	mutex_unlock(&dsp->host_buf_info.lock);
-
-	if (ret != 0)
-		goto err_raw_capt_buf;
-
 	size = params->buffer.fragment_size;
 	if (size == 0) {
 		dsp->capt_watermark = WM_ADSP_DEFAULT_WATERMARK;
@@ -3531,10 +3578,6 @@ int wm_adsp_stream_alloc(struct wm_adsp *dsp,
 	}
 
 	return 0;
-
-err_raw_capt_buf:
-	kfree(dsp->raw_capt_buf);
-	dsp->raw_capt_buf = NULL;
 err_capt_buf:
 	vfree(dsp->capt_buf.buf);
 	dsp->capt_buf.buf = NULL;
@@ -3569,26 +3612,8 @@ int wm_adsp_stream_alloc2(struct wm_adsp *adsp,
 
 		if (!adsp->raw_capt_buf2) {
 			ret = -ENOMEM;
-			goto err_raw_capt_buf;
 		}
 	}
-
-	mutex_lock(&adsp->host_buf_info2.lock);
-
-	ret = 0;
-	if (!adsp->host_buf_info2.host_regions) {
-		size = adsp->firmwares[adsp->fw].caps->num_host_regions *
-		       sizeof(*adsp->host_buf_info.host_regions);
-		adsp->host_buf_info2.host_regions = kzalloc(size, GFP_KERNEL);
-
-		if (!adsp->host_buf_info2.host_regions)
-			ret = -ENOMEM;
-	}
-
-	mutex_unlock(&adsp->host_buf_info2.lock);
-
-	if (ret != 0)
-		goto err_raw_capt_buf;
 
 	size = params->buffer.fragment_size;
 	if (size == 0) {
@@ -3601,9 +3626,6 @@ int wm_adsp_stream_alloc2(struct wm_adsp *adsp,
 	}
 	return 0;
 
-err_raw_capt_buf:
-	kfree(adsp->raw_capt_buf2);
-	adsp->raw_capt_buf2 = NULL;
 err_capt_buf:
 	vfree(adsp->capt_buf2.buf);
 	adsp->capt_buf2.buf = NULL;
@@ -3613,24 +3635,15 @@ EXPORT_SYMBOL_GPL(wm_adsp_stream_alloc2);
 
 int wm_adsp_stream_free(struct wm_adsp *adsp, int buffer)
 {
-	struct wm_adsp_buffer_region *host_regions;
-	struct wm_adsp_buffer_region *host_regions2;
 
 	switch (buffer) {
 	case ADSP2_BUFFER_1:
-		mutex_lock(&adsp->host_buf_info.lock);
-		host_regions = adsp->host_buf_info.host_regions;
-		adsp->host_buf_info.host_regions = NULL;
-		kfree(host_regions);
 		kfree(adsp->raw_capt_buf);
 		adsp->raw_capt_buf = NULL;
 		vfree(adsp->capt_buf.buf);
 		adsp->capt_buf.buf = NULL;
 		break;
 	case ADSP2_BUFFER_2:
-		host_regions2 = adsp->host_buf_info2.host_regions;
-		adsp->host_buf_info2.host_regions = NULL;
-		kfree(host_regions2);
 		kfree(adsp->raw_capt_buf2);
 		adsp->raw_capt_buf2 = NULL;
 		vfree(adsp->capt_buf2.buf);
@@ -3649,9 +3662,11 @@ int wm_adsp_stream_start(struct wm_adsp *dsp)
 
 	mutex_lock(&dsp->host_buf_info.lock);
 
-	ret = wm_adsp_init_host_buf_info(dsp);
-	if (ret < 0)
+	if (!dsp->host_buf_info.host_buf_ptr) {
+		adsp_warn(dsp, "No host buffer info\n");
+		ret = -EIO;
 		goto out_unlock;
+	}
 
 	dsp->max_dsp_read_bytes = WM_ADSP_MAX_READ_SIZE * sizeof(u32);
 
@@ -3757,8 +3772,10 @@ static int wm_adsp_stream_capture(struct wm_adsp *dsp)
 
 	lockdep_assert_held(&dsp->host_buf_info.lock);
 
-	if (!dsp->host_buf_info.host_regions)
+	if (!dsp->host_buf_info.host_regions) {
+		adsp_warn(dsp, "No host buffer info\n");
 		return -EIO;
+	}
 
 	do {
 		amount_read = 0;
@@ -3824,6 +3841,11 @@ static int wm_adsp_ack_buffer_interrupt(struct wm_adsp *dsp)
 
 	lockdep_assert_held(&dsp->host_buf_info.lock);
 
+	if (!dsp->host_buf_info.host_buf_ptr) {
+		adsp_warn(dsp, "No host buffer info\n");
+		return -EIO;
+	}
+
 	ret = wm_adsp_host_buffer_read(dsp,
 				       HOST_BUFFER_FIELD(irq_count),
 				       &irq_ack);
@@ -3846,9 +3868,16 @@ static int wm_adsp_ack_buffer2_interrupt(struct wm_adsp *adsp)
 
 	lockdep_assert_held(&adsp->host_buf_info2.lock);
 
+
+	if (!adsp->host_buf_info2.host_buf_ptr) {
+		adsp_warn(adsp, "No host buffer info\n");
+		return -EIO;
+	}
+
 	ret = wm_adsp_host_buffer2_read(adsp,
 				       HOST_BUFFER_FIELD(irq_count),
 				       &irq_ack);
+
 	if (ret < 0)
 		return ret;
 
@@ -3868,6 +3897,12 @@ int wm_adsp_stream_handle_irq(struct wm_adsp *adsp, bool two_buf)
 
 
 	mutex_lock(&adsp->host_buf_info.lock);
+
+	if (!adsp->host_buf_info.host_buf_ptr) {
+		adsp_warn(adsp, "No host buffer info\n");
+		ret = -EIO;
+		goto out_unlock;
+	}
 
 	if (!two_buf)
 		ret = wm_adsp_host_buffer_read(adsp,
