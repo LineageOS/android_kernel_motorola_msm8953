@@ -3540,6 +3540,72 @@ static int wm_adsp_capture_block2(struct wm_adsp *adsp, int *avail)
 	return num_words;
 }
 
+static int wm_adsp_stream_has_error_locked(struct wm_adsp *dsp)
+{
+	int ret;
+
+	lockdep_assert_held(&dsp->host_buf_info.lock);
+
+	if (dsp->host_buf_info.error != 0)
+		return -EIO;
+
+	ret = wm_adsp_host_buffer_read(dsp,
+					HOST_BUFFER_FIELD(error),
+					&dsp->host_buf_info.error);
+	if (ret < 0) {
+		adsp_err(dsp, "Failed to read error field: %d\n", ret);
+		return ret;
+	}
+
+	if (dsp->host_buf_info.error != 0) {
+		/* log the first time we see the error */
+		adsp_warn(dsp,  "DSP stream error occurred: %d\n",
+			  dsp->host_buf_info.error);
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static int wm_adsp_stream_has_error_locked2(struct wm_adsp *dsp)
+{
+	int ret;
+
+	lockdep_assert_held(&dsp->host_buf_info2.lock);
+
+	if (dsp->host_buf_info2.error != 0)
+		return -EIO;
+
+	ret = wm_adsp_host_buffer_read(dsp,
+					HOST_BUFFER_FIELD(error),
+					&dsp->host_buf_info2.error);
+	if (ret < 0) {
+		adsp_err(dsp, "Failed to read error field: %d\n", ret);
+		return ret;
+	}
+
+	if (dsp->host_buf_info2.error != 0) {
+		/* log the first time we see the error */
+		adsp_warn(dsp,  "DSP stream error occurred: %d\n",
+			  dsp->host_buf_info2.error);
+		return -EIO;
+	}
+
+	return 0;
+}
+
+int wm_adsp_stream_has_error(struct wm_adsp *dsp)
+{
+	int ret;
+
+	mutex_lock(&dsp->host_buf_info.lock);
+	ret = wm_adsp_stream_has_error_locked(dsp);
+	mutex_unlock(&dsp->host_buf_info.lock);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(wm_adsp_stream_has_error);
+
 int wm_adsp_stream_alloc(struct wm_adsp *dsp,
 			 const struct snd_compr_params *params)
 {
@@ -3903,22 +3969,12 @@ int wm_adsp_stream_handle_irq(struct wm_adsp *adsp, bool two_buf)
 		ret = -EIO;
 		goto out_unlock;
 	}
-
 	if (!two_buf)
-		ret = wm_adsp_host_buffer_read(adsp,
-			       HOST_BUFFER_FIELD(error),
-			       &adsp->host_buf_info.error);
+		ret = wm_adsp_stream_has_error_locked(adsp);
 	else
-		ret = wm_adsp_host_buffer2_read(adsp,
-				HOST_BUFFER_FIELD(error),
-				&adsp->host_buf_info.error);
+		ret = wm_adsp_stream_has_error_locked2(adsp);
 	if (ret < 0)
-		return ret;
-	if (adsp->host_buf_info.error != 0) {
-		adsp_err(adsp, "DSP error occurred: %d\n", adsp->host_buf_info.error);
-		ret = -EIO;
 		goto out_unlock;
-	}
 	if (!two_buf) {
 		bytes_captured = wm_adsp_stream_capture(adsp);
 		if (bytes_captured < 0){
@@ -3991,9 +4047,12 @@ int wm_adsp_stream_read(struct wm_adsp *dsp, char __user *buf, size_t count)
 	if (dsp->buffer_drain_pending) {
 		mutex_lock(&dsp->host_buf_info.lock);
 
-		ret = wm_adsp_stream_capture(dsp);
-		if (ret >= 0)
-			ret = wm_adsp_ack_buffer_interrupt(dsp);
+		ret = wm_adsp_stream_has_error_locked(dsp);
+		if (ret >= 0) {
+			ret = wm_adsp_stream_capture(dsp);
+			if (ret >= 0)
+				ret = wm_adsp_ack_buffer_interrupt(dsp);
+		}
 
 		mutex_unlock(&dsp->host_buf_info.lock);
 
@@ -4049,9 +4108,11 @@ int wm_adsp_stream_read2(struct wm_adsp *adsp, char __user *buf, size_t count)
 	if (adsp->buffer2_drain_pending) {
 		mutex_lock(&adsp->host_buf_info2.lock);
 
-		ret = wm_adsp_stream_capture2(adsp);
-		if (ret >= 0){ 
-			ret = wm_adsp_ack_buffer2_interrupt(adsp);
+		ret = wm_adsp_stream_has_error_locked2(adsp);
+		if (ret >= 0) {
+			ret = wm_adsp_stream_capture2(adsp);
+			if (ret >= 0)
+				ret = wm_adsp_ack_buffer2_interrupt(adsp);
 		}
 		mutex_unlock(&adsp->host_buf_info2.lock);
 	}

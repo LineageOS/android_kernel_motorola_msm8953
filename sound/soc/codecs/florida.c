@@ -2109,6 +2109,7 @@ static int adsp2_get_comprdev_index(struct snd_compr_stream *stream)
 	return -EINVAL;
 }
 
+
 static int adsp2_ez2ctrl_set_trigger(struct florida_priv *florida)
 {
 	if (florida->core.arizona->pdata.ez2ctrl_trigger)
@@ -2124,7 +2125,8 @@ static bool adsp2_ez2ctrl_trigger(struct florida_priv *florida, int dev)
 	if ((!florida->compr_info[dev].freed)
 		&& (florida->core.adsp[dev].fw_id == 0x4000d
 		|| florida->core.adsp[dev].fw_id == 0x40036)
-		&& florida->core.adsp[dev].running) {
+		&& florida->core.adsp[dev].running
+		&& !wm_adsp_stream_has_error(&florida->core.adsp[dev])) {
 		florida->compr_info[dev].trig = true;
 		florida->compr_info[dev].freed = true;
 		return true;

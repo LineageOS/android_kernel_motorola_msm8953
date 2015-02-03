@@ -1943,6 +1943,7 @@ static int marley_get_compr_index(struct snd_compr_stream *stream)
 	return -EINVAL;
 }
 
+
 static int marley_get_dsp_num(struct snd_compr_stream *stream)
 {
 	struct snd_soc_pcm_runtime *rtd = stream->private_data;
@@ -1974,7 +1975,8 @@ static bool marley_ez2ctrl_trigger(struct marley_priv *marley, int dev)
 	if ((!marley->compr_info[dev].freed)
 		&& (marley->core.adsp[dev].fw_id == 0x4000d
 		|| marley->core.adsp[dev].fw_id == 0x40036)
-		&& marley->core.adsp[dev].running) {
+		&& marley->core.adsp[dev].running
+		&& !wm_adsp_stream_has_error(&marley->core.adsp[dev])) {
 		marley->compr_info[dev].trig = true;
 		marley->compr_info[dev].freed = true;
 		return true;
