@@ -1337,8 +1337,12 @@ static int largo_codec_probe(struct snd_soc_codec *codec)
 	arizona_init_mono(codec);
 	arizona_init_input(codec);
 
-	ret = snd_soc_add_codec_controls(codec, &wm_adsp2_fw_controls[2], 4);
-	if (ret != 0)
+	ret = wm_adsp2_codec_probe(&priv->core.adsp[1], codec);
+	if (ret)
+		return ret;
+
+	ret = wm_adsp2_codec_probe(&priv->core.adsp[2], codec);
+	if (ret)
 		return ret;
 
 	snd_soc_dapm_disable_pin(&codec->dapm, "HAPTICS");

@@ -2354,10 +2354,6 @@ static int marley_codec_probe(struct snd_soc_codec *codec)
 	regmap_update_bits(arizona->regmap, ARIZONA_SAMPLE_RATE_1,
 			   ARIZONA_SAMPLE_RATE_1_MASK, 0x03);
 
-	ret = snd_soc_add_codec_controls(codec, wm_adsp2v2_fw_controls, 6);
-	if (ret != 0)
-		return ret;
-
 	snd_soc_dapm_disable_pin(&codec->dapm, "HAPTICS");
 
 	priv->core.arizona->dapm = &codec->dapm;
