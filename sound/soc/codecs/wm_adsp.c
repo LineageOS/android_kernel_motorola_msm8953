@@ -553,61 +553,6 @@ static int wm_adsp_fw_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int wm_adsp2v2_rate_get(struct snd_kcontrol *kcontrol,
-			       struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
-	struct wm_adsp *dsps = snd_soc_codec_get_drvdata(codec);
-	struct wm_adsp *dsp = &dsps[e->shift_l];
-	unsigned int item;
-
-	mutex_lock(&dsp->rate_lock);
-
-	for (item = 0; item < e->items; item++) {
-		if (e->values[item] == dsp->rate_cache) {
-			ucontrol->value.enumerated.item[0] = item;
-			mutex_unlock(&dsp->rate_lock);
-			return 0;
-		}
-	}
-
-	mutex_unlock(&dsp->rate_lock);
-
-	return -EINVAL;
-}
-
-static int wm_adsp2v2_rate_put(struct snd_kcontrol *kcontrol,
-			       struct snd_ctl_elem_value *ucontrol)
-{
-	struct snd_soc_codec *codec = snd_soc_kcontrol_codec(kcontrol);
-	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
-	struct wm_adsp *dsps = snd_soc_codec_get_drvdata(codec);
-	struct wm_adsp *dsp = &dsps[e->shift_l];
-	unsigned int item = ucontrol->value.enumerated.item[0];
-	unsigned int val;
-	int ret = 0;
-
-	if (item >= e->items)
-		return -EINVAL;
-
-	mutex_lock(&dsp->rate_lock);
-
-	if (e->values[item] != dsp->rate_cache) {
-		val = e->values[item];
-		dsp->rate_cache = val;
-
-		if (dsp->running) {
-			ret = dsp->rate_put_cb(dsp, ADSP2V2_RATE_MASK,
-						val << ADSP2V2_RATE_SHIFT);
-		}
-	}
-
-	mutex_unlock(&dsp->rate_lock);
-
-	return ret;
-}
-
 static struct soc_enum wm_adsp_fw_enum[] = {
 	SOC_ENUM_SINGLE(0, 0, ARRAY_SIZE(wm_adsp_fw_text), wm_adsp_fw_text),
 	SOC_ENUM_SINGLE(0, 1, ARRAY_SIZE(wm_adsp_fw_text), wm_adsp_fw_text),
@@ -618,164 +563,23 @@ static struct soc_enum wm_adsp_fw_enum[] = {
 	SOC_ENUM_SINGLE(0, 6, ARRAY_SIZE(wm_adsp_fw_text), wm_adsp_fw_text),
 };
 
-const struct snd_kcontrol_new wm_adsp1_fw_controls[] = {
+const struct snd_kcontrol_new wm_adsp_fw_controls[] = {
 	SOC_ENUM_EXT("DSP1 Firmware", wm_adsp_fw_enum[0],
 		     wm_adsp_fw_get, wm_adsp_fw_put),
 	SOC_ENUM_EXT("DSP2 Firmware", wm_adsp_fw_enum[1],
 		     wm_adsp_fw_get, wm_adsp_fw_put),
 	SOC_ENUM_EXT("DSP3 Firmware", wm_adsp_fw_enum[2],
 		     wm_adsp_fw_get, wm_adsp_fw_put),
+	SOC_ENUM_EXT("DSP4 Firmware", wm_adsp_fw_enum[3],
+		     wm_adsp_fw_get, wm_adsp_fw_put),
+	SOC_ENUM_EXT("DSP5 Firmware", wm_adsp_fw_enum[4],
+		     wm_adsp_fw_get, wm_adsp_fw_put),
+	SOC_ENUM_EXT("DSP6 Firmware", wm_adsp_fw_enum[5],
+		     wm_adsp_fw_get, wm_adsp_fw_put),
+	SOC_ENUM_EXT("DSP7 Firmware", wm_adsp_fw_enum[6],
+		     wm_adsp_fw_get, wm_adsp_fw_put),
 };
-EXPORT_SYMBOL_GPL(wm_adsp1_fw_controls);
-
-static char const *wm_adsp_audio_mode_text[] = {
-	"NORMAL",
-	"VOICE",
-	"RING",
-	"SONIFICATION",
-	"CALIBRATION",
-};
-static const struct soc_enum wm_adsp_audio_mode_enum[] = {
-	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wm_adsp_audio_mode_text),
-	wm_adsp_audio_mode_text),
-};
-static int audio_mode;
-static struct wm_adsp *sp_core_dsp;
-static int wm_adsp_load_coeff(struct wm_adsp *dsp);
-static int wm_adsp_audio_mode_get(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
-{
-	ucontrol->value.integer.value[0] = audio_mode;
-	return 0;
-}
-
-static int wm_adsp_audio_mode_put(struct snd_kcontrol *kcontrol,
-			struct snd_ctl_elem_value *ucontrol)
-{
-	int ret;
-	int i = ucontrol->value.integer.value[0];
-
-	if (i < 0 || i >= ARRAY_SIZE(wm_adsp_audio_mode_text))
-		return -ERANGE;
-
-	if (audio_mode != i) {
-		audio_mode = i;
-		if (sp_core_dsp != NULL) {
-			ret = wm_adsp_load_coeff(sp_core_dsp);
-			if (ret != 0) {
-				adsp_err(sp_core_dsp,
-					"can't reload audio_mode %d coeff\n",
-					audio_mode);
-				return ret;
-			}
-		}
-	}
-	return 0;
-}
-
-static const struct soc_enum wm_adsp2_rate_enum[] = {
-	SOC_VALUE_ENUM_SINGLE(ARIZONA_DSP1_CONTROL_1,
-			      ARIZONA_DSP1_RATE_SHIFT, 0xf,
-			      ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(ARIZONA_DSP2_CONTROL_1,
-			      ARIZONA_DSP1_RATE_SHIFT, 0xf,
-			      ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(ARIZONA_DSP3_CONTROL_1,
-			      ARIZONA_DSP1_RATE_SHIFT, 0xf,
-			      ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(ARIZONA_DSP4_CONTROL_1,
-			      ARIZONA_DSP1_RATE_SHIFT, 0xf,
-			      ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-};
-
-static const struct snd_kcontrol_new wm_adsp2_fw_controls[4][2] = {
-	{
-		SOC_ENUM_EXT("DSP1 Firmware", wm_adsp_fw_enum[0],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM("DSP1 Rate", wm_adsp2_rate_enum[0]),
-	},
-	{
-		SOC_ENUM_EXT("DSP2 Firmware", wm_adsp_fw_enum[1],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM("DSP2 Rate", wm_adsp2_rate_enum[1]),
-	},
-	{
-		SOC_ENUM_EXT("DSP3 Firmware", wm_adsp_fw_enum[2],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM("DSP3 Rate", wm_adsp2_rate_enum[2]),
-	},
-	{
-		SOC_ENUM_EXT("DSP4 Firmware", wm_adsp_fw_enum[3],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM("DSP4 Rate", wm_adsp2_rate_enum[3]),
-	},
-};
-
-static const struct soc_enum wm_adsp2v2_rate_enum[] = {
-	SOC_VALUE_ENUM_SINGLE(0, 0, 0xf, ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(0, 1, 0xf, ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(0, 2, 0xf, ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(0, 3, 0xf, ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(0, 4, 0xf, ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(0, 5, 0xf, ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-	SOC_VALUE_ENUM_SINGLE(0, 6, 0xf, ARIZONA_RATE_ENUM_SIZE,
-			      arizona_rate_text, arizona_rate_val),
-};
-
-static const struct snd_kcontrol_new wm_adsp2v2_fw_controls[7][2] = {
-	{
-		SOC_ENUM_EXT("DSP1 Firmware", wm_adsp_fw_enum[0],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM_EXT("DSP1 Rate", wm_adsp2v2_rate_enum[0],
-			     wm_adsp2v2_rate_get, wm_adsp2v2_rate_put),
-	},
-	{
-		SOC_ENUM_EXT("DSP2 Firmware", wm_adsp_fw_enum[1],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM_EXT("DSP2 Rate", wm_adsp2v2_rate_enum[1],
-			     wm_adsp2v2_rate_get, wm_adsp2v2_rate_put),
-	},
-	{
-		SOC_ENUM_EXT("DSP3 Firmware", wm_adsp_fw_enum[2],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM_EXT("DSP3 Rate", wm_adsp2v2_rate_enum[2],
-			     wm_adsp2v2_rate_get, wm_adsp2v2_rate_put),
-	},
-	{
-		SOC_ENUM_EXT("DSP4 Firmware", wm_adsp_fw_enum[3],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM_EXT("DSP4 Rate", wm_adsp2v2_rate_enum[3],
-			     wm_adsp2v2_rate_get, wm_adsp2v2_rate_put),
-	},
-	{
-		SOC_ENUM_EXT("DSP5 Firmware", wm_adsp_fw_enum[4],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM_EXT("DSP5 Rate", wm_adsp2v2_rate_enum[4],
-			     wm_adsp2v2_rate_get, wm_adsp2v2_rate_put),
-	},
-	{
-		SOC_ENUM_EXT("DSP6 Firmware", wm_adsp_fw_enum[5],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM_EXT("DSP6 Rate", wm_adsp2v2_rate_enum[5],
-			     wm_adsp2v2_rate_get, wm_adsp2v2_rate_put),
-	},
-	{
-		SOC_ENUM_EXT("DSP7 Firmware", wm_adsp_fw_enum[6],
-			     wm_adsp_fw_get, wm_adsp_fw_put),
-		SOC_ENUM_EXT("DSP7 Rate", wm_adsp2v2_rate_enum[6],
-			     wm_adsp2v2_rate_get, wm_adsp2v2_rate_put),
-	},
-};
+EXPORT_SYMBOL_GPL(wm_adsp_fw_controls);
 
 static struct wm_adsp_region const *wm_adsp_find_region(struct wm_adsp *dsp,
 							int type)
@@ -2021,7 +1825,6 @@ static int wm_adsp_load_coeff(struct wm_adsp *dsp)
 	int err, pos, blocks, type, offset, reg;
 	char *file;
 	unsigned int burst_multiple;
-	const char *coeff;
 
 	if (dsp->firmwares[dsp->fw].binfile &&
 	    !(strcmp(dsp->firmwares[dsp->fw].binfile, "None")))
@@ -2032,44 +1835,11 @@ static int wm_adsp_load_coeff(struct wm_adsp *dsp)
 		return -ENOMEM;
 
 	if (dsp->firmwares[dsp->fw].binfile)
-		coeff = dsp->firmwares[dsp->fw].binfile;
-	else
-		coeff = dsp->firmwares[dsp->fw].file;
-
-	if (dsp->fw == WM_ADSP_FW_SPK_PROT) {
-		switch (audio_mode) {
-		case 0:
-			snprintf(file, PAGE_SIZE, "%s-dsp%d-%s.bin",
-				 dsp->part, dsp->num, coeff);
-			break;
-		case 1:
-			snprintf(file, PAGE_SIZE, "%s-dsp%d-%s-voice.bin",
-				 dsp->part, dsp->num, coeff);
-			break;
-		case 2:
-			snprintf(file, PAGE_SIZE, "%s-dsp%d-%s-ring.bin",
-				 dsp->part, dsp->num, coeff);
-			break;
-		case 3:
-			snprintf(file, PAGE_SIZE, "%s-dsp%d-%s-sonification.bin",
-				 dsp->part, dsp->num, coeff);
-			break;
-		case 4:
-			snprintf(file, PAGE_SIZE, "%s-dsp%d-%s-calibration.bin",
-				 dsp->part, dsp->num, coeff);
-			break;
-		default:
-			adsp_err(dsp, "%s: Unsupported coefficient table %d\n",
-				 __func__, audio_mode);
-			ret = -EINVAL;
-			goto out_fw;
-		}
-		sp_core_dsp = dsp;
-		adsp_info(dsp, "coefficient table : %s\n", file);
-	} else
 		snprintf(file, PAGE_SIZE, "%s-dsp%d-%s.bin", dsp->part,
-			 dsp->num, coeff);
-
+			 dsp->num, dsp->firmwares[dsp->fw].binfile);
+	else
+		snprintf(file, PAGE_SIZE, "%s-dsp%d-%s.bin", dsp->part,
+			 dsp->num, dsp->firmwares[dsp->fw].file);
 	file[PAGE_SIZE - 1] = '\0';
 
 	mutex_lock(dsp->fw_lock);
@@ -2386,7 +2156,6 @@ int wm_adsp1_event(struct snd_soc_dapm_widget *w,
 			list_del(&alg_region->list);
 			kfree(alg_region);
 		}
-		sp_core_dsp = NULL;
 		break;
 
 	default:
