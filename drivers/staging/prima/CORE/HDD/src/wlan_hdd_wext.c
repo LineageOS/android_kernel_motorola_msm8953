@@ -179,6 +179,10 @@ static const hdd_freq_chan_map_t freq_chan_map[] = { {2412, 1}, {2417, 2},
 #define  WE_SET_MODULATED_DTIM    26
 #define WLAN_SET_DYNNAMIC_AGGREGATION 27
 
+// BEGIN IKSWM-15907, Motorola, w18918
+#define WE_SET_CHANNEL_RANGE 90
+// END IKSWM-15907, Motorola, w18918
+
 /* Private ioctls and their sub-ioctls */
 #define WLAN_PRIV_SET_NONE_GET_INT    (SIOCIWFIRSTPRIV + 1)
 #define WE_GET_11D_STATE     1
@@ -5911,6 +5915,32 @@ static int __iw_setint_getnone(struct net_device *dev,
 
            break;
         }
+        // Motorola, IKJBREL1-4181
+        case WE_SET_CHANNEL_RANGE:
+        {
+            int startChannel, endChannel;
+            if (set_value == 3) {
+                startChannel = 153;
+                endChannel   = 165;
+            } else if (set_value == 2) {
+                startChannel = 104;
+                endChannel   = 140;
+            } else if (set_value == 1) {
+                startChannel = 40;
+                endChannel   = 64;
+            } else {
+                set_value = 0;
+                startChannel = 1;
+                //BEGIN MOT a19110 IKJBXLINE-2149 MHS frequency band support
+                //Motorola jmng34 IKSWM-2195-Restrict mhs 2.4 ghz channels to FCC
+                endChannel   = 11;
+                //END IKJBXLINE-2149
+            }
+
+            ret = iw_softap_set_channel_range( dev, startChannel, endChannel, set_value);
+            break;
+        }
+       // End IKJBREL1-4181
 
         case WE_ENABLE_STRICT_FCC_REG:
         {
