@@ -474,7 +474,6 @@ struct arizona_fll {
 	struct mutex lock;
 
 	struct arizona_fll_cfg ref_cfg;
-	struct arizona_fll_cfg sync_cfg;
 };
 
 extern int arizona_dvfs_up(struct snd_soc_codec *codec, unsigned int flags);
