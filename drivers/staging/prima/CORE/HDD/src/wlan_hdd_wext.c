@@ -5920,13 +5920,13 @@ static int __iw_setint_getnone(struct net_device *dev,
         {
             int startChannel, endChannel;
             if (set_value == 3) {
-                startChannel = 153;
-                endChannel   = 165;
+                startChannel = 149;
+                endChannel   = 161;
             } else if (set_value == 2) {
-                startChannel = 104;
-                endChannel   = 140;
+                startChannel = 100;
+                endChannel   = 144;
             } else if (set_value == 1) {
-                startChannel = 40;
+                startChannel = 36;
                 endChannel   = 64;
             } else {
                 set_value = 0;
