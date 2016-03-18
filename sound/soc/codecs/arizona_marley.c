@@ -5309,8 +5309,21 @@ static int arizona_calc_fratio(struct arizona_fll *fll,
 			init_ratio, fref, refdiv);
 
 	while (div <= ARIZONA_FLL_MAX_REFDIV) {
-		for (ratio = init_ratio; ratio <= ARIZONA_FLL_MAX_FRATIO;
-		     ratio++) {
+		/* start from init_ratio because this may already give a
+		 * fractional N.K
+		 */
+		for (ratio = init_ratio; ratio > 0; ratio--) {
+			if (fvco % (ratio * fref)) {
+				cfg->refdiv = refdiv;
+				cfg->fratio = ratio - 1;
+				arizona_fll_dbg(fll,
+					"pseudo: found fref=%u refdiv=%d(%d) ratio=%d\n",
+					fref, refdiv, div, ratio);
+				return ratio;
+			}
+		}
+
+		for (ratio = init_ratio + 1; ratio <= ARIZONA_FLL_MAX_FRATIO;
 			if ((ARIZONA_FLL_VCO_CORNER / 2) /
 			    (fll->vco_mult * ratio) < fref) {
 				arizona_fll_dbg(fll, "pseudo: hit VCO corner\n");
@@ -5325,17 +5338,6 @@ static int arizona_calc_fratio(struct arizona_fll *fll,
 				break;
 			}
 
-			if (fvco % (ratio * fref)) {
-				cfg->refdiv = refdiv;
-				cfg->fratio = ratio - 1;
-				arizona_fll_dbg(fll,
-					"pseudo: found fref=%u refdiv=%d(%d) ratio=%d\n",
-					fref, refdiv, div, ratio);
-				return ratio;
-			}
-		}
-
-		for (ratio = init_ratio - 1; ratio > 0; ratio--) {
 			if (fvco % (ratio * fref)) {
 				cfg->refdiv = refdiv;
 				cfg->fratio = ratio - 1;
