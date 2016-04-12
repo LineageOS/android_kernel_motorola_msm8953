@@ -5145,7 +5145,7 @@ static int arizona_wait_for_fll(struct arizona_fll *fll, bool requested)
 		break;
 	}
 
-	for (i = 0; i < 25; i++) {
+	for (i = 0; i < 30; i++) {
 		regmap_read(arizona->regmap, reg, &val);
 		status = val & (mask << (fll->id - 1));
 		if (status == requested)
