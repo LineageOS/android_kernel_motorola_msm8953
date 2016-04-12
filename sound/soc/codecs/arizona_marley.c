@@ -3064,8 +3064,13 @@ int arizona_out_ev(struct snd_soc_dapm_widget *w,
 		case ARIZONA_OUT3R_ENA_SHIFT:
 			priv->out_up_pending--;
 			if (!priv->out_up_pending) {
-				usleep_range(priv->out_up_delay*1000,
-					priv->out_up_delay*1000 + 1);
+				if (priv->out_up_pending < 20) {
+					int delay = priv->out_up_delay * 1000;
+
+					usleep_range(delay, delay + 1000);
+				} else {
+					msleep(priv->out_up_delay);
+				}
 				priv->out_up_delay = 0;
 			}
 			break;
