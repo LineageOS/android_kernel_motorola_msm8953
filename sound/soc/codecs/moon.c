@@ -498,12 +498,10 @@ static int moon_rate_put(struct snd_kcontrol *kcontrol,
 
 	/* Apply the rate through the original callback */
 	clearwater_spin_sysclk(arizona);
-	udelay(300);
 	mutex_lock(&codec->mutex);
 	ret = snd_soc_update_bits(codec, e->reg, mask, val);
 	mutex_unlock(&codec->mutex);
 	clearwater_spin_sysclk(arizona);
-	udelay(300);
 
 out:
 	err = arizona_restore_sources(arizona, cur_sources,
@@ -562,11 +560,9 @@ static int moon_adsp_rate_put_cb(struct wm_adsp *adsp,
 	}
 
 	clearwater_spin_sysclk(arizona);
-	udelay(300);
 	/* Apply the rate */
 	ret = regmap_update_bits(adsp->regmap, adsp->base, mask, val);
 	clearwater_spin_sysclk(arizona);
-	udelay(300);
 
 out:
 	err = arizona_restore_sources(arizona, cur_sources,
@@ -592,7 +588,6 @@ static int moon_sysclk_ev(struct snd_soc_dapm_widget *w,
 	struct arizona *arizona = priv->arizona;
 
 	clearwater_spin_sysclk(arizona);
-	udelay(300);
 
 	return 0;
 }

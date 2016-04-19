@@ -334,6 +334,8 @@ void clearwater_spin_sysclk(struct arizona *arizona)
 				"%s Failed to read register: %d (%d)\n",
 				__func__, ret, i);
 	}
+
+	udelay(300);
 }
 EXPORT_SYMBOL_GPL(clearwater_spin_sysclk);
 
@@ -4705,7 +4707,6 @@ static int arizona_hw_params_rate(struct snd_pcm_substream *substream,
 		}
 
 		clearwater_spin_sysclk(priv->arizona);
-		udelay(300);
 	}
 
 	switch (dai_priv->clk) {
@@ -4762,7 +4763,6 @@ static int arizona_hw_params_rate(struct snd_pcm_substream *substream,
 
 	if (change_rate) {
 		clearwater_spin_sysclk(priv->arizona);
-		udelay(300);
 	}
 
 out:
@@ -5324,6 +5324,7 @@ static int arizona_calc_fratio(struct arizona_fll *fll,
 		}
 
 		for (ratio = init_ratio + 1; ratio <= ARIZONA_FLL_MAX_FRATIO;
+		     ratio++) {
 			if ((ARIZONA_FLL_VCO_CORNER / 2) /
 			    (fll->vco_mult * ratio) < fref) {
 				arizona_fll_dbg(fll, "pseudo: hit VCO corner\n");
