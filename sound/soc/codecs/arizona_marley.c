@@ -915,17 +915,6 @@ int arizona_init_input(struct snd_soc_codec *codec)
 		}
 
 		switch (arizona->type) {
-		case WM5102:
-		case WM5110:
-		case WM8997:
-		case WM8280:
-		case WM8998:
-		case WM1814:
-		case WM1831:
-		case CS47L24:
-			routes[0].sink = arizona_dmic_inputs[i * 2];
-			routes[1].sink = arizona_dmic_inputs[(i * 2) + 1];
-			break;
 		case WM8285:
 		case WM1840:
 			routes[0].sink = clearwater_dmic_inputs[i * 2];
@@ -935,9 +924,14 @@ int arizona_init_input(struct snd_soc_codec *codec)
 			routes[0].sink = marley_dmic_inputs[i * 2];
 			routes[1].sink = marley_dmic_inputs[(i * 2) + 1];
 			break;
-		default:
+		case CS47L90:
+		case CS47L91:
 			routes[0].sink = moon_dmic_inputs[i * 2];
 			routes[1].sink = moon_dmic_inputs[(i * 2) + 1];
+			break;
+		default:
+			routes[0].sink = arizona_dmic_inputs[i * 2];
+			routes[1].sink = arizona_dmic_inputs[(i * 2) + 1];
 			break;
 		}
 
@@ -5579,7 +5573,7 @@ static int arizona_wait_for_fll(struct arizona_fll *fll, bool requested)
 			msleep(20);
 			break;
 		}
-
+	}
 	arizona_fll_warn(fll, "Timed out waiting for lock\n");
 
 	return -ETIMEDOUT;
