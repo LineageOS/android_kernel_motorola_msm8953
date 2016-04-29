@@ -1647,13 +1647,9 @@ static const struct snd_soc_dapm_route florida_dapm_routes[] = {
 
 	{ "Voice Control CPU", NULL, "Voice Control DSP" },
 	{ "Voice Control DSP", NULL, "DSP3" },
-	{ "Voice Control CPU", NULL, "SYSCLK" },
-	{ "Voice Control DSP", NULL, "SYSCLK" },
 
 	{ "Trace CPU", NULL, "Trace DSP" },
 	{ "Trace DSP", NULL, "DSP1" },
-	{ "Trace CPU", NULL, "SYSCLK" },
-	{ "Trace DSP", NULL, "SYSCLK" },
 
 	{"Text DSP2 CPU", NULL, "Text DSP2" },
 	{"Text DSP2", NULL, "DSP2" },

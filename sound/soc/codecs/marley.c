@@ -1554,13 +1554,9 @@ static const struct snd_soc_dapm_route marley_dapm_routes[] = {
 
 	{ "Voice Control CPU", NULL, "Voice Control DSP" },
 	{ "Voice Control DSP", NULL, "DSP3" },
-	{ "Voice Control CPU", NULL, "SYSCLK" },
-	{ "Voice Control DSP", NULL, "SYSCLK" },
 
 	{ "Trace CPU", NULL, "Trace DSP" },
 	{ "Trace DSP", NULL, "DSP1" },
-	{ "Trace CPU", NULL, "SYSCLK" },
-	{ "Trace DSP", NULL, "SYSCLK" },
 
 	{ "IN1L Mux", "A", "IN1AL" },
 	{ "IN1L Mux", "B", "IN1BL" },
@@ -1626,16 +1622,15 @@ static const struct snd_soc_dapm_route marley_dapm_routes[] = {
 	ARIZONA_DSP_ROUTES("DSP2"),
 	ARIZONA_DSP_ROUTES("DSP3"),
 
-	{ "DSP2 Preloader", NULL, "DSP2 Virtual Input" },
+	{ "DSP2", NULL, "DSP2 Virtual Input" },
 	{ "DSP2 Virtual Input", "Shared Memory", "DSP3" },
-	{ "DSP3 Preloader", NULL, "DSP3 Virtual Input" },
+	{ "DSP3", NULL, "DSP3 Virtual Input" },
 	{ "DSP3 Virtual Input", "Shared Memory", "DSP2" },
 
 	{ "DSP1 Virtual Output", NULL, "DSP1 Virtual Output Mux" },
 	{ "DSP1 Virtual Output Mux", "DSP1", "DSP1" },
-	{ "DSP1 Virtual Output", NULL, "SYSCLK" },
 
-	{ "DSP2 Preloader", NULL, "DSP Virtual Input" },
+	{ "DSP2", NULL, "DSP Virtual Input" },
 	{ "DSP2 Virtual Output", NULL, "DSP2 Virtual Output Mux" },
 	{ "DSP2 Virtual Output Mux", "DSP2", "DSP2" },
 	{ "DSP2 Virtual Output", NULL, "SYSCLK" },

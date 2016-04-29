@@ -1717,7 +1717,6 @@ static const struct snd_soc_dapm_route wm5102_dapm_routes[] = {
 
 	{ "DSP Virtual Output", NULL, "DSP Virtual Output Mux" },
 	{ "DSP Virtual Output Mux", "DSP1", "DSP1" },
-	{ "DSP Virtual Output", NULL, "SYSCLK" },
 
 	{ "AEC Loopback", "HPOUT1L", "OUT1L" },
 	{ "AEC Loopback", "HPOUT1R", "OUT1R" },
