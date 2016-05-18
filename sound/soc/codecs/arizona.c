@@ -4385,8 +4385,9 @@ static int arizona_hw_params_rate(struct snd_pcm_substream *substream,
 		}
 	}
 
-	if ((cur & ARIZONA_AIF1_RATE_MASK) == (tar & ARIZONA_AIF1_RATE_MASK))
-		change_rate = false;
+		if ((cur & ARIZONA_AIF1_RATE_MASK) !=
+		    (tar & ARIZONA_AIF1_RATE_MASK))
+			change_rate = true;
 
 	if (change_rate && !slim_dai) {
 		ret = arizona_get_sources(priv->arizona,
@@ -4397,10 +4398,10 @@ static int arizona_hw_params_rate(struct snd_pcm_substream *substream,
 			arizona_aif_err(dai,
 					"Failed to get aif sources %d\n",
 					ret);
-			return ret;
-		}
+				return ret;
+			}
 
-		mutex_lock(&priv->arizona->rate_lock);
+			mutex_lock(&priv->arizona->rate_lock);
 
 		ret = arizona_cache_and_clear_sources(priv->arizona, sources,
 						      arizona_aif_sources_cache,

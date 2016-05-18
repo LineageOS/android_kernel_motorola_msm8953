@@ -4576,7 +4576,7 @@ static int arizona_hw_params_rate(struct snd_pcm_substream *substream,
 	int i, sr_val, lim = 0;
 	const int *sources = NULL;
 	unsigned int cur, tar;
-	bool change_rate = true, slim_dai = false;
+	bool change_rate = false, slim_dai = false;
 	u32 rx_sampleszbits, rx_samplerate;
 
 	rx_sampleszbits = snd_pcm_format_width(params_format(params));
@@ -4654,67 +4654,70 @@ static int arizona_hw_params_rate(struct snd_pcm_substream *substream,
 		break;
 	}
 
-	switch (dai_priv->clk) {
-	case ARIZONA_CLK_SYSCLK:
-		tar = 0 << ARIZONA_AIF1_RATE_SHIFT;
-		break;
-	case ARIZONA_CLK_SYSCLK_2:
-		tar = 1 << ARIZONA_AIF1_RATE_SHIFT;
-		break;
-	case ARIZONA_CLK_SYSCLK_3:
-		tar = 2 << ARIZONA_AIF1_RATE_SHIFT;
-		break;
-	case ARIZONA_CLK_ASYNCCLK:
-		tar = 8 << ARIZONA_AIF1_RATE_SHIFT;
-		break;
-	case ARIZONA_CLK_ASYNCCLK_2:
-		tar = 9 << ARIZONA_AIF1_RATE_SHIFT;
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	/* If a Slimbus DAI, then there is no need to AIF Rates */
-	if (strnstr(dai->name, "-slim", strlen(dai->name)))
-		slim_dai = true;
-
-	if (!slim_dai) {
-		ret = regmap_read(priv->arizona->regmap,
-			  base + ARIZONA_AIF_RATE_CTRL, &cur);
-		if (ret != 0) {
-			arizona_aif_err(dai, "Failed to check rate: %d\n", ret);
-			return ret;
+	if (base) {
+		switch (dai_priv->clk) {
+		case ARIZONA_CLK_SYSCLK:
+			tar = 0 << ARIZONA_AIF1_RATE_SHIFT;
+			break;
+		case ARIZONA_CLK_SYSCLK_2:
+			tar = 1 << ARIZONA_AIF1_RATE_SHIFT;
+			break;
+		case ARIZONA_CLK_SYSCLK_3:
+			tar = 2 << ARIZONA_AIF1_RATE_SHIFT;
+			break;
+		case ARIZONA_CLK_ASYNCCLK:
+			tar = 8 << ARIZONA_AIF1_RATE_SHIFT;
+			break;
+		case ARIZONA_CLK_ASYNCCLK_2:
+			tar = 9 << ARIZONA_AIF1_RATE_SHIFT;
+			break;
+		default:
+			return -EINVAL;
 		}
-	}
+		
 
-	if ((cur & ARIZONA_AIF1_RATE_MASK) == (tar & ARIZONA_AIF1_RATE_MASK))
-		change_rate = false;
+		/* If a Slimbus DAI, then there is no need to AIF Rates */
+		if (strnstr(dai->name, "-slim", strlen(dai->name)))
+			slim_dai = true;
 
-	if (change_rate && !slim_dai) {
-		ret = arizona_get_sources(priv->arizona,
-					  dai,
-					  &sources,
-					  &lim);
-		if (ret != 0) {
-			arizona_aif_err(dai,
-					"Failed to get aif sources %d\n",
+		if (!slim_dai) {
+			ret = regmap_read(priv->arizona->regmap,
+			  	base + ARIZONA_AIF_RATE_CTRL, &cur);
+			if (ret != 0) {
+				arizona_aif_err(dai, "Failed to check rate: %d\n", ret);
+				return ret;
+			}
+		}
+
+		if ((cur & ARIZONA_AIF1_RATE_MASK) == (tar & ARIZONA_AIF1_RATE_MASK))
+			change_rate = false;
+
+		if (change_rate && !slim_dai) {
+			ret = arizona_get_sources(priv->arizona,
+						  dai,
+						  &sources,
+						  &lim);
+			if (ret != 0) {
+				arizona_aif_err(dai,
+						"Failed to get aif sources %d\n",
+						ret);
+				return ret;
+			}
+
+			mutex_lock(&priv->arizona->rate_lock);
+
+			ret = arizona_cache_and_clear_sources(priv->arizona, sources,
+							      arizona_aif_sources_cache,
+							      lim);
+			if (ret != 0) {
+				arizona_aif_err(dai,
+					"Failed to cache and clear aif sources: %d\n",
 					ret);
-			return ret;
+				goto out;
+			}
+
+			clearwater_spin_sysclk(priv->arizona);
 		}
-
-		mutex_lock(&priv->arizona->rate_lock);
-
-		ret = arizona_cache_and_clear_sources(priv->arizona, sources,
-						      arizona_aif_sources_cache,
-						      lim);
-		if (ret != 0) {
-			arizona_aif_err(dai,
-				"Failed to cache and clear aif sources: %d\n",
-				ret);
-			goto out;
-		}
-
-		clearwater_spin_sysclk(priv->arizona);
 	}
 
 	switch (dai_priv->clk) {
