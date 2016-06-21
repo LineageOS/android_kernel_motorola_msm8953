@@ -61,8 +61,6 @@ struct ISDBT_INIT_INFO_T *hInit;
 #else
 
 extern struct of_device_id fc8300_match_table[];
-extern struct miscdevice fc8300_misc_device;
-void isdbt_exit(void);
 s32 isdbt_chip_id(void);
 
 static int irq_gpio;
@@ -74,6 +72,8 @@ static int reset_gpio;
 #define GPIO_ISDBT_RST		reset_gpio
 
 #endif
+extern struct miscdevice fc8300_misc_device;
+void isdbt_exit(void);
 
 struct ISDBT_OPEN_INFO_T hOpen_Val;
 u8 static_ringbuffer[RING_BUFFER_SIZE];
@@ -83,6 +83,7 @@ static DEFINE_MUTEX(ringbuffer_lock);
 static DEFINE_MUTEX(driver_mode_lock);
 
 static DECLARE_WAIT_QUEUE_HEAD(isdbt_isr_wait);
+u32 bbm_xtal_freq;
 
 #ifndef BBM_I2C_TSIF
 static u8 isdbt_isr_sig;
@@ -162,7 +163,6 @@ gpio_isdbt_en:
 /*POWER_ON & HW_RESET & INTERRUPT_CLEAR */
 void isdbt_hw_init(void)
 {
-
 	mutex_lock(&driver_mode_lock);
 	print_log(0, "isdbt_hw_init \n");
 
@@ -578,6 +578,7 @@ long isdbt_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 static int fc8300_dt_init(void)
 {
 	struct device_node *np;
+	u32 rc;
 
 	np = of_find_compatible_node(NULL, NULL,
 		fc8300_match_table[0].compatible);
@@ -601,6 +602,11 @@ static int fc8300_dt_init(void)
 		print_log(hInit, "isdbt error getting irq_gpio\n");
 		return -EINVAL;
 	}
+
+	bbm_xtal_freq = DEFAULT_BBM_XTAL_FREQ;
+	rc = of_property_read_u32(np, "bbm-xtal-freq", &bbm_xtal_freq);
+	if (rc)
+		print_log(hInit, "no dt xtal-freq config, using default\n");
 
 	return 0;
 }
@@ -652,8 +658,10 @@ int isdbt_init(void)
 	}
 
 	res = fc8300_dt_init();
-	if (res)
+	if (res) {
+		misc_deregister(&fc8300_misc_device);
 		return res;
+	}
 
 	isdbt_hw_setting();
 
@@ -713,7 +721,6 @@ void isdbt_exit(void)
 
 	if (hInit != NULL)
 		kfree(hInit);
-
 	misc_deregister(&fc8300_misc_device);
 
 }

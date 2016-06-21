@@ -28,6 +28,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+extern u32 bbm_xtal_freq;
 
 /* #define BBM_I2C_SPI */
 /* #define BBM_I2C_TSIF */
@@ -54,7 +55,8 @@ extern "C" {
 /* #define BBM_XTAL_FREQ               27120 */
 /* #define BBM_XTAL_FREQ               32000 */
 /* #define BBM_XTAL_FREQ               37200 */
-#define BBM_XTAL_FREQ               37400
+#define DEFAULT_BBM_XTAL_FREQ          37400
+#define BBM_XTAL_FREQ				   bbm_xtal_freq
 /* #define BBM_XTAL_FREQ               38400 */
 
 #define BBM_BAND_WIDTH              6
