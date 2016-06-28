@@ -78,14 +78,14 @@ extern "C" {
 #define DEVICEID        unsigned short
 
 enum BROADCAST_TYPE {
-	ISDBT_1SEG       = 0, /* B-31, T    1-SEG */
-	ISDBTMM_1SEG     = 1, /* B-46, Tmm  1-SEG */
-	ISDBTSB_1SEG     = 2, /* B-29, Tsb  1-SEG */
-	ISDBTSB_3SEG     = 3, /* B-29, Tsb  3-SEG */
-	ISDBT_13SEG      = 4, /* B-31, T   13-SEG */
-	ISDBTMM_13SEG    = 5, /* B-46, Tmm 13-SEG */
-	ISDBT_CATV_13SEG = 6,
-	ISDBT_CATV_1SEG  = 7
+	ISDBT_1SEG       = 0x01, /* B-31, T    1-SEG */
+	ISDBTMM_1SEG     = 0x02, /* B-46, Tmm  1-SEG */
+	ISDBTSB_1SEG     = 0x04, /* B-29, Tsb  1-SEG */
+	ISDBTSB_3SEG     = 0x08, /* B-29, Tsb  3-SEG */
+	ISDBT_13SEG      = 0x10, /* B-31, T   13-SEG */
+	ISDBTMM_13SEG    = 0x20, /* B-46, Tmm 13-SEG */
+	ISDBT_CATV_13SEG = 0x40,
+	ISDBT_CATV_1SEG  = 0x80
 };
 
 #ifdef __cplusplus
