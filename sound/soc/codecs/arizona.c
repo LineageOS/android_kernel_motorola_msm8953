@@ -5164,11 +5164,14 @@ static int arizona_enable_fll(struct arizona_fll *fll)
 	struct arizona *arizona = fll->arizona;
 	bool use_sync = false;
 	int already_enabled = arizona_is_enabled_fll(fll, fll->base);
+	int sync_enabled = arizona_is_enabled_fll(fll, fll->base + 0x10);
 	struct arizona_fll_cfg cfg;
 	bool fll_change;
 
 	if (already_enabled < 0)
 		return already_enabled;
+	if (sync_enabled < 0)
+		return sync_enabled;
 
 	arizona_fll_dbg(fll, "Enabling FLL, initially %s\n",
 			already_enabled ? "enabled" : "disabled");
@@ -5216,6 +5219,9 @@ static int arizona_enable_fll(struct arizona_fll *fll)
 		arizona_fll_err(fll, "No clocks provided\n");
 		return -EINVAL;
 	}
+
+	if (already_enabled && !!sync_enabled != use_sync)
+		arizona_fll_warn(fll, "Synchroniser changed on active FLL\n");
 
 	/*
 	 * Increase the bandwidth if we're not using a low frequency
