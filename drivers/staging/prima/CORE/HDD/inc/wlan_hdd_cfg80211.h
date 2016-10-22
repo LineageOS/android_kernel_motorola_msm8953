@@ -2032,7 +2032,7 @@ int wlan_hdd_send_hang_reason_event(hdd_context_t *hdd_ctx,
 				    unsigned int reason);
 
 #if defined(CFG80211_DISCONNECTED_V2) || \
-(LINUX_VERSION_CODE >= KERNEL_VERSION(4, 2, 0))
+(LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0))
 static inline void wlan_hdd_cfg80211_indicate_disconnect(struct net_device *dev,
                                                          bool locally_generated,
                                                          int reason)
