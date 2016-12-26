@@ -38,6 +38,8 @@ extern s32 fc8300_set_broadcast_mode(HANDLE handle, DEVICEID devid,
 		enum BROADCAST_TYPE broadcast);
 extern s32 fc8300_set_core_clk(HANDLE handle, DEVICEID devid,
 		enum BROADCAST_TYPE broadcast, u32 freq);
+extern s32 fc8300_lna_init(HANDLE handle, DEVICEID devid);
+
 
 #ifdef __cplusplus
 }

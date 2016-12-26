@@ -306,3 +306,11 @@ void bbm_com_isr(HANDLE handle)
 	fc8300_isr(handle);
 }
 
+s32 bbm_com_lna_init(HANDLE handle, DEVICEID devid)
+{
+	s32 res;
+
+	res = fc8300_lna_init(handle, devid);
+
+	return res;
+}
