@@ -67,7 +67,6 @@ s32 bbm_com_ac_callback_register(ulong userdata,
 		s32 (*callback)(ulong userdata, u8 bufid, u8 *data, s32 length));
 s32 bbm_com_ac_callback_deregister(void);
 void bbm_com_isr(HANDLE handle);
-s32 bbm_com_lna_init(HANDLE handle, DEVICEID devid);
 
 #endif /* __BBM_H__ */
 

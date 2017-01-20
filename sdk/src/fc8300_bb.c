@@ -4702,10 +4702,3 @@ s32 fc8300_set_broadcast_mode(HANDLE handle, DEVICEID devid,
 	return res;
 }
 
-s32 fc8300_lna_init(HANDLE handle, DEVICEID devid)
-{
-	bbm_byte_write(handle, DIV_MASTER, BBM_GPIO_DIR, 0x04);
-	bbm_byte_write(handle, DIV_MASTER, BBM_GPIO_DATA, 0x00);
-
-	return BBM_OK;
-}

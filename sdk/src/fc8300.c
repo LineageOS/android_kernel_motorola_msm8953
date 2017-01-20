@@ -66,7 +66,6 @@ s32 isdbt_chip_id(void);
 static int irq_gpio;
 static int enable_gpio;
 static int reset_gpio;
-static bool lna_control_support = false;
 
 #define GPIO_ISDBT_IRQ		irq_gpio
 #define GPIO_ISDBT_PWR_EN	enable_gpio
@@ -421,8 +420,6 @@ long isdbt_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			break;
 		}
 		res |= bbm_com_init(hInit, DIV_BROADCAST);
-		if(lna_control_support)
-			res |= bbm_com_lna_init(hInit,DIV_BROADCAST);
 		break;
 	case IOCTL_ISDBT_BYTE_READ:
 		err = copy_from_user((void *)&info, (void *)arg, size);
@@ -611,8 +608,6 @@ static int fc8300_dt_init(void)
 	if (rc)
 		print_log(hInit, "no dt xtal-freq config, using default\n");
 
-	lna_control_support= of_property_read_bool(np,
-					"lna_control_support");
 	return 0;
 }
 #else
