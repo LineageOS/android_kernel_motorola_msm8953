@@ -338,6 +338,7 @@ struct qpnp_hap {
 	u32 time_required_to_generate_back_emf_us;
 	u32 vmax_mv;
 	u32 vmax_low_mv;
+	u32 vmax_default_mv;
 	u32 ilim_ma;
 	u32 sc_deb_cycles;
 	u32 int_pwm_freq_khz;
@@ -1414,6 +1415,28 @@ static ssize_t qpnp_hap_vmax_mv_store(struct device *dev,
 	return strnlen(buf, count);
 }
 
+static ssize_t qpnp_hap_vmax_default_mv_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct timed_output_dev *timed_dev = dev_get_drvdata(dev);
+	struct qpnp_hap *hap = container_of(timed_dev, struct qpnp_hap,
+					 timed_dev);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", hap->vmax_default_mv);
+}
+
+static ssize_t qpnp_hap_vmax_min_mv_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "%d\n", QPNP_HAP_VMAX_MIN_MV);
+}
+
+static ssize_t qpnp_hap_vmax_max_mv_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "%d\n", QPNP_HAP_VMAX_MAX_MV);
+}
+
 /* sysfs attributes */
 static struct device_attribute qpnp_hap_attrs[] = {
 	__ATTR(wf_s0, (S_IRUGO | S_IWUSR | S_IWGRP),
@@ -1461,9 +1484,18 @@ static struct device_attribute qpnp_hap_attrs[] = {
 	__ATTR(min_max_test, (S_IRUGO | S_IWUSR | S_IWGRP),
 			qpnp_hap_min_max_test_data_show,
 			qpnp_hap_min_max_test_data_store),
-	__ATTR(vmax_mv, (S_IRUGO | S_IWUSR | S_IWGRP),
+	__ATTR(vtg_level, (S_IRUGO | S_IWUSR | S_IWGRP),
 			qpnp_hap_vmax_mv_show,
 			qpnp_hap_vmax_mv_store),
+	__ATTR(vtg_default, S_IRUGO,
+			qpnp_hap_vmax_default_mv_show,
+			NULL),
+	__ATTR(vtg_min, S_IRUGO,
+			qpnp_hap_vmax_min_mv_show,
+			NULL),
+	__ATTR(vtg_max, S_IRUGO,
+			qpnp_hap_vmax_max_mv_show,
+			NULL),
 };
 
 static int calculate_lra_code(struct qpnp_hap *hap)
@@ -2361,6 +2393,8 @@ static int qpnp_hap_parse_dt(struct qpnp_hap *hap)
 		dev_err(&spmi->dev, "Unable to read vmax\n");
 		return rc;
 	}
+
+	hap->vmax_default_mv = hap->vmax_mv;
 
 #ifdef CONFIG_QPNP_MOT_CONTEXT_HAPTIC
 	if (strncmp(bi_bootmode(), FACTORY_MODE_STR, BOOTMODE_MAX_LEN)) {
