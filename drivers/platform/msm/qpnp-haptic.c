@@ -371,7 +371,6 @@ struct qpnp_hap {
 	bool misc_trim_error_rc19p2_clk_reg_present;
 	bool perform_lra_auto_resonance_search;
 	uint8_t low_vmax;
-	bool context_haptics;
 };
 
 static struct qpnp_hap *ghap;
@@ -1724,8 +1723,7 @@ static void qpnp_hap_td_enable(struct timed_output_dev *dev, int value)
 		hap->state = 1;
 
 #ifdef CONFIG_QPNP_MOT_CONTEXT_HAPTIC
-		if (hap->context_haptics)
-			qpnp_hap_context(hap, value);
+		qpnp_hap_context(hap, value);
 #endif
 
 		hrtimer_start(&hap->hap_timer,
@@ -2323,21 +2321,18 @@ static int qpnp_hap_parse_dt(struct qpnp_hap *hap)
 		return rc;
 	}
 
+#ifdef CONFIG_QPNP_MOT_CONTEXT_HAPTIC
 	if (strncmp(bi_bootmode(), FACTORY_MODE_STR, BOOTMODE_MAX_LEN)) {
 
-		hap->context_haptics = of_property_read_bool(spmi->dev.of_node,
-						"qcom,context-haptics");
-
-		if (hap->context_haptics) {
-			hap->vmax_low_mv = QPNP_HAP_VMAX_LOW_DEFAULT;
-			rc = of_property_read_u32(spmi->dev.of_node,
-				"qcom,vmax-low-mv", &temp);
-			if (!rc)
-				hap->vmax_low_mv = temp;
-			else
-				dev_info(&spmi->dev, "default vmax low\n");
-		}
+		hap->vmax_low_mv = QPNP_HAP_VMAX_LOW_DEFAULT;
+		rc = of_property_read_u32(spmi->dev.of_node,
+			"qcom,vmax-low-mv", &temp);
+		if (!rc)
+			hap->vmax_low_mv = temp;
+		else
+			dev_info(&spmi->dev, "default vmax low\n");
 	}
+#endif
 
 	hap->ilim_ma = QPNP_HAP_ILIM_MIN_MV;
 	rc = of_property_read_u32(spmi->dev.of_node,
