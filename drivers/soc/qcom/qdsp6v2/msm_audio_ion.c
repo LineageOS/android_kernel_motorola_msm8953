@@ -697,7 +697,7 @@ static int msm_audio_smmu_init_legacy(struct device *dev)
 	struct dma_iommu_mapping *mapping;
 	struct device_node *ctx_node = NULL;
 	struct context_bank_info *cb;
-	int ret;
+	int ret = 0;
 	u32 read_val[2];
 
 	cb = devm_kzalloc(dev, sizeof(struct context_bank_info), GFP_KERNEL);
