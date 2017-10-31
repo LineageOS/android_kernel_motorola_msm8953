@@ -2903,6 +2903,7 @@ static const struct pid_entry tgid_base_stuff[] = {
 #endif
 #ifdef CONFIG_CPU_FREQ_STAT
 	ONE("time_in_state", 0444, proc_time_in_state_show),
+	ONE("concurrent_active_time", 0444, proc_concurrent_active_time_show),
 #endif
 };
 
@@ -3286,6 +3287,7 @@ static const struct pid_entry tid_base_stuff[] = {
 #endif
 #ifdef CONFIG_CPU_FREQ_STAT
 	ONE("time_in_state", 0444, proc_time_in_state_show),
+	ONE("concurrent_active_time", 0444, proc_concurrent_active_time_show),
 #endif
 };
 
