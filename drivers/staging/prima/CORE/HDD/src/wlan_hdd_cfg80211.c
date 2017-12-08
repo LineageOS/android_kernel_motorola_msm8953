@@ -6735,7 +6735,7 @@ void wlan_hdd_cfg80211_acs_ch_select_evt(hdd_adapter_t *adapter, tChannelListInf
 
     ret_val = nla_put_u8(vendor_event,
         QCA_WLAN_VENDOR_ATTR_ACS_SECONDARY_CHANNEL,
-        channel_list.channels[channel_list.num_channels - 1]);
+        0); // IKSWO-21203, Moto, gambugge, Fix channel set failure in nl80211 driver
     if (ret_val) {
         hddLog(VOS_TRACE_LEVEL_ERROR, "QCA_WLAN_VENDOR_ATTR_ACS_SECONDARY_CHANNEL put fail");
         kfree_skb(vendor_event);
