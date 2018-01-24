@@ -32,7 +32,6 @@
 #include <linux/miscdevice.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
-#include <asm/mach-types.h>
 #include <asm/setup.h>
 #include <linux/wakelock.h>
 #include <linux/jiffies.h>
@@ -1396,7 +1395,7 @@ static int epld_sensor_cdev_enable_ps(struct sensors_classdev *sensors_cdev, uns
 
 	return 0;
 }
-static ssize_t epl_snesor_cdev_set_ps_delay(struct sensors_classdev *sensors_cdev, unsigned int delay_msec)
+static int epl_snesor_cdev_set_ps_delay(struct sensors_classdev *sensors_cdev, unsigned int delay_msec)
 {
 	/* struct elan_epl_data *epld = container_of(sensors_cdev, struct elan_epl_data, als_cdev); */
 
@@ -1408,7 +1407,7 @@ static ssize_t epl_snesor_cdev_set_ps_delay(struct sensors_classdev *sensors_cde
 	return 0;
 }
 
-static ssize_t epl_sensor_cdev_set_als_delay(struct sensors_classdev *sensors_cdev, unsigned int delay_msec)
+static int epl_sensor_cdev_set_als_delay(struct sensors_classdev *sensors_cdev, unsigned int delay_msec)
 {
 	/* struct elan_epl_data *epld = container_of(sensors_cdev, struct elan_epl_data, als_cdev); */
 
@@ -3008,7 +3007,7 @@ static int epl_sensor_als_open(struct inode *inode, struct file *file)
 /*----------------------------------------------------------------------------*/
 
 /*----------------------------------------------------------------------------*/
-static int epl_sensor_als_read(struct file *file, char __user *buffer, size_t count, loff_t *ppos)
+static ssize_t epl_sensor_als_read(struct file *file, char __user *buffer, size_t count, loff_t *ppos)
 {
 	struct epl_sensor_priv *epld = epl_sensor_obj;
 	int buf[1];

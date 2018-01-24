@@ -283,7 +283,7 @@ static void ltr559_set_ps_threshold(struct i2c_client *client, u8 addr, u16 valu
 	i2c_smbus_write_word_data(client, addr, value);
 }
 
-static ssize_t ltr559_set_ps_delay(struct sensors_classdev *sensors_cdev,
+static int ltr559_set_ps_delay(struct sensors_classdev *sensors_cdev,
 		unsigned int delay_msec)
 {
 	if (delay_msec < PS_MIN_POLLING_RATE)   /*at least 200 ms */
