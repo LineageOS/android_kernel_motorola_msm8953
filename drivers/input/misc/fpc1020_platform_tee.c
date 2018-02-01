@@ -20,6 +20,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/platform_device.h>
 #include <linux/notifier.h>
+#include <linux/fb.h>
 
 struct FPS_data {
 	unsigned int enabled;
@@ -117,7 +118,32 @@ struct fpc1020_data {
 	int rst_gpio;
 	int irq_num;
 	unsigned int irq_cnt;
+	struct mutex lock;
+	struct notifier_block fb_notifier;
+	bool fb_black;
+	bool proximity_state;
 };
+
+static void config_irq(struct fpc1020_data *fpc1020, bool enabled)
+{
+	static bool irq_enabled = true;
+
+	mutex_lock(&fpc1020->lock);
+	if (enabled != irq_enabled) {
+		if (enabled)
+			enable_irq(gpio_to_irq(fpc1020->irq_gpio));
+		else
+			disable_irq(gpio_to_irq(fpc1020->irq_gpio));
+
+		dev_info(fpc1020->dev, "%s: %s fpc irq ---\n", __func__,
+			 enabled ? "enable" : "disable");
+		irq_enabled = enabled;
+	} else {
+		dev_info(fpc1020->dev, "%s: dual config irq status: %s\n", __func__,
+			 enabled ? "true" : "false");
+	}
+	mutex_unlock(&fpc1020->lock);
+}
 
 static ssize_t dev_enable_set(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
@@ -153,10 +179,37 @@ static ssize_t irq_cnt_get(struct device *device,
 }
 static DEVICE_ATTR(irq_cnt, S_IRUSR, irq_cnt_get, NULL);
 
+static ssize_t proximity_state_set(struct device *dev,
+				struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct fpc1020_data *fpc1020 = dev_get_drvdata(dev);
+	int rc, val;
+
+	rc = kstrtoint(buf, 10, &val);
+	if (rc)
+		return -EINVAL;
+
+	fpc1020->proximity_state = !!val;
+
+	if (fpc1020->fb_black) {
+		if (fpc1020->proximity_state) {
+			/* Disable IRQ when screen is off and proximity sensor is covered */
+			config_irq(fpc1020, false);
+		} else {
+			/* Enable IRQ when screen is off and proximity sensor is uncovered */
+			config_irq(fpc1020, true);
+		}
+	}
+
+	return count;
+}
+static DEVICE_ATTR(proximity_state, S_IWUSR, NULL, proximity_state_set);
+
 static struct attribute *attributes[] = {
 	&dev_attr_dev_enable.attr,
 	&dev_attr_irq.attr,
 	&dev_attr_irq_cnt.attr,
+	&dev_attr_proximity_state.attr,
 	NULL
 };
 
@@ -191,6 +244,52 @@ static int fpc1020_request_named_gpio(struct fpc1020_data *fpc1020,
 	dev_dbg(dev, "%s %d\n", label, *gpio);
 	return 0;
 }
+
+static int fpc_fb_notif_callback(struct notifier_block *nb,
+				unsigned long val, void *data)
+{
+	struct fpc1020_data *fpc1020 = container_of(nb, struct fpc1020_data,
+							fb_notifier);
+	struct fb_event *evdata = data;
+	unsigned int blank;
+
+	if (!fpc1020)
+		return 0;
+
+	if (val != FB_EVENT_BLANK)
+		return 0;
+
+	pr_debug("[info] %s value = %d\n", __func__, (int)val);
+
+	if (evdata && evdata->data && val == FB_EVENT_BLANK) {
+		blank = *(int *)(evdata->data);
+		switch (blank) {
+		case FB_BLANK_POWERDOWN:
+			fpc1020->fb_black = true;
+			/*
+			 * Disable IRQ when screen turns off,
+			 * if proximity sensor is covered
+			 */
+			if (fpc1020->proximity_state)
+				config_irq(fpc1020, false);
+			break;
+		case FB_BLANK_UNBLANK:
+		case FB_BLANK_NORMAL:
+			fpc1020->fb_black = false;
+			/* Unconditionally enable IRQ when screen turns on */
+			config_irq(fpc1020, true);
+			break;
+		default:
+			pr_debug("%s default\n", __func__);
+			break;
+		}
+	}
+	return NOTIFY_OK;
+}
+
+static struct notifier_block fpc_notif_block = {
+	.notifier_call = fpc_fb_notif_callback,
+};
 
 static int fpc1020_probe(struct platform_device *pdev)
 {
@@ -231,6 +330,7 @@ static int fpc1020_probe(struct platform_device *pdev)
 	usleep_range(200, 210);
 	gpio_direction_output(fpc1020->rst_gpio, 1);
 
+	mutex_init(&fpc1020->lock);
 	device_init_wakeup(dev, true);
 
 	fpc1020->irq_cnt = 0;
@@ -257,14 +357,20 @@ static int fpc1020_probe(struct platform_device *pdev)
 	}
 
 	dev_info(dev, "%s: ok\n", __func__);
+	fpc1020->fb_black = false;
+	fpc1020->fb_notifier = fpc_notif_block;
+	fb_register_client(&fpc1020->fb_notifier);
 exit:
 	return rc;
 }
 
 static int fpc1020_remove(struct platform_device *pdev)
 {
+	struct  fpc1020_data *fpc1020 = dev_get_drvdata(&pdev->dev);
+
 	sysfs_remove_group(&pdev->dev.kobj, &attribute_group);
 
+	mutex_destroy(&fpc1020->lock);
 	dev_info(&pdev->dev, "%s\n", __func__);
 	return 0;
 }
