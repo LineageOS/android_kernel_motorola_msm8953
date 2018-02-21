@@ -1407,6 +1407,7 @@ static int msm_compr_playback_open(struct snd_compr_stream *cstream)
 		kfree(pdata->audio_effects[rtd->dai_link->be_id]);
 		pdata->audio_effects[rtd->dai_link->be_id] = NULL;
 		kfree(pdata->dec_params[rtd->dai_link->be_id]);
+		pdata->dec_params[rtd->dai_link->be_id] = NULL;
 		pdata->cstream[rtd->dai_link->be_id] = NULL;
 		kfree(prtd);
 		runtime->private_data = NULL;
