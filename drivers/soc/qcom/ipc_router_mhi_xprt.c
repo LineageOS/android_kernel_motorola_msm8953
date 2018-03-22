@@ -424,7 +424,7 @@ static int ipc_router_mhi_write(void *data,
 	struct rr_packet *pkt = (struct rr_packet *)data;
 	struct sk_buff *ipc_rtr_pkt;
 	struct rr_packet *cloned_pkt;
-	int rc;
+	int rc = 0;
 	struct ipc_router_mhi_xprt *mhi_xprtp =
 		container_of(xprt, struct ipc_router_mhi_xprt, xprt);
 

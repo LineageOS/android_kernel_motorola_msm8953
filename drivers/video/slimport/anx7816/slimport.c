@@ -1775,8 +1775,8 @@ static int anx7816_i2c_probe(struct i2c_client *client,
 			     const struct i2c_device_id *id)
 {
 
-	struct anx7816_data *anx7816;
-	struct anx7816_platform_data *pdata;
+	struct anx7816_data *anx7816 = NULL;
+	struct anx7816_platform_data *pdata = NULL;
 	int ret = 0;
 
 	pr_debug("%s %s start\n", LOG_TAG, __func__);
