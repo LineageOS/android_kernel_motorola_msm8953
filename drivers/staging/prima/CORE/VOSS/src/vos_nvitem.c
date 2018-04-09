@@ -186,6 +186,53 @@ chan_to_ht_40_index_map chan_to_ht_40_index[NUM_20MHZ_RF_CHANNELS] =
   {RF_CHAN_BOND_163, INVALID_RF_CHANNEL},  //RF_CHAN_165,
 };
 
+//BEGIN IKSWO-79967, add disable MHS Band1 country list
+typedef struct
+{
+    v_U16_t countryCount;
+    v_COUNTRYCODE_t countryCode[MAX_COUNTRY_COUNT];
+} DisableMhsBand1CountryTable_t;
+static DisableMhsBand1CountryTable_t disableMhsBand1CountryInfoTable =
+{
+    33,
+    {
+      {'A', 'T'},
+      {'B', 'E'},
+      {'B', 'G'},
+      {'C', 'H'},
+      {'C', 'Y'},
+      {'C', 'Z'},
+      {'D', 'E'},
+      {'D', 'K'},
+      {'E', 'E'},
+      {'E', 'L'},
+      {'E', 'S'},
+      {'F', 'I'},
+      {'F', 'R'},
+      {'H', 'R'},
+      {'H', 'U'},
+      {'I', 'E'},
+      {'I', 'S'},
+      {'I', 'T'},
+      {'L', 'I'},
+      {'L', 'T'},
+      {'L', 'U'},
+      {'L', 'V'},
+      {'M', 'T'},
+      {'N', 'L'},
+      {'N', 'O'},
+      {'P', 'L'},
+      {'P', 'T'},
+      {'R', 'O'},
+      {'S', 'E'},
+      {'S', 'I'},
+      {'S', 'K'},
+      {'T', 'R'},
+      {'U', 'K'},
+    }
+};
+//END IKSWO-79967
+
 static CountryInfoTable_t countryInfoTable =
 {
     /* the first entry in the table is always the world domain */
@@ -199,15 +246,15 @@ static CountryInfoTable_t countryInfoTable =
       {REGDOMAIN_ETSI, {'A', 'N'}}, //NETHERLANDS ANTILLES
       {REGDOMAIN_WORLD, {'A', 'R'}}, //ARGENTINA
       {REGDOMAIN_FCC, {'A', 'S'}}, //AMERICAN SOMOA
-      {REGDOMAIN_FCC, {'A', 'T'}}, //AUSTRIA
+      {REGDOMAIN_ETSI, {'A', 'T'}}, //AUSTRIA
       {REGDOMAIN_ETSI, {'A', 'U'}}, //AUSTRALIA
       {REGDOMAIN_ETSI , {'A', 'W'}}, //ARUBA
       {REGDOMAIN_ETSI,  {'A', 'Z'}}, //AZERBAIJAN
       {REGDOMAIN_ETSI, {'B', 'A'}}, //BOSNIA AND HERZEGOVINA
       {REGDOMAIN_APAC, {'B', 'B'}}, //BARBADOS
       {REGDOMAIN_ETSI, {'B', 'D'}}, //BANGLADESH
-      {REGDOMAIN_FCC, { 'B', 'E'}}, //BELGIUM
-      {REGDOMAIN_FCC, {'B', 'G'}}, //BULGARIA
+      {REGDOMAIN_ETSI, { 'B', 'E'}}, //BELGIUM
+      {REGDOMAIN_ETSI, {'B', 'G'}}, //BULGARIA
       {REGDOMAIN_APAC, {'B', 'H'}}, //BAHRAIN
       {REGDOMAIN_ETSI, {'B', 'L'}}, //
       {REGDOMAIN_FCC, {'B', 'M'}}, //BERMUDA
@@ -218,25 +265,24 @@ static CountryInfoTable_t countryInfoTable =
       {REGDOMAIN_ETSI, {'B', 'Y'}}, //BELARUS
       {REGDOMAIN_ETSI, {'B', 'Z'}}, //BELIZE
       {REGDOMAIN_FCC, {'C', 'A'}}, //CANADA
-      {REGDOMAIN_FCC, {'C', 'H'}}, //SWITZERLAND
+      {REGDOMAIN_ETSI, {'C', 'H'}}, //SWITZERLAND
       {REGDOMAIN_APAC, {'C', 'L'}}, //CHILE
       {REGDOMAIN_APAC, {'C', 'N'}}, //CHINA
       {REGDOMAIN_APAC, {'C', 'O'}}, //COLOMBIA
       {REGDOMAIN_APAC, {'C', 'R'}}, //COSTA RICA
       {REGDOMAIN_ETSI, {'C', 'S'}},
-      {REGDOMAIN_FCC, {'C', 'Y'}}, //CYPRUS
-      {REGDOMAIN_FCC, {'C', 'Z'}}, //CZECH REPUBLIC
-      {REGDOMAIN_FCC, {'D', 'E'}}, //GERMANY
-      {REGDOMAIN_FCC, {'D', 'K'}}, //DENMARK
+      {REGDOMAIN_ETSI, {'C', 'Y'}}, //CYPRUS
+      {REGDOMAIN_ETSI, {'C', 'Z'}}, //CZECH REPUBLIC
+      {REGDOMAIN_ETSI, {'D', 'E'}}, //GERMANY
+      {REGDOMAIN_ETSI, {'D', 'K'}}, //DENMARK
       {REGDOMAIN_APAC, {'D', 'O'}}, //DOMINICAN REPUBLIC
       {REGDOMAIN_ETSI, {'D', 'Z'}}, //ALGERIA
       {REGDOMAIN_APAC, {'E', 'C'}}, //ECUADOR
-      {REGDOMAIN_FCC, {'E', 'E'}}, //ESTONIA
+      {REGDOMAIN_ETSI, {'E', 'E'}}, //ESTONIA
       {REGDOMAIN_ETSI, {'E', 'G'}}, //EGYPT
-      {REGDOMAIN_FCC, {'E', 'L'}},
-      {REGDOMAIN_FCC, {'E', 'S'}}, //SPAIN
-      {REGDOMAIN_FCC, {'F', 'I'}}, //FINLAND
-      {REGDOMAIN_FCC, {'F', 'R'}}, //FRANCE
+      {REGDOMAIN_ETSI, {'E', 'S'}}, //SPAIN
+      {REGDOMAIN_ETSI, {'F', 'I'}}, //FINLAND
+      {REGDOMAIN_ETSI, {'F', 'R'}}, //FRANCE
       {REGDOMAIN_ETSI, {'G', 'B'}}, //UNITED KINGDOM
       {REGDOMAIN_WORLD, {'G', 'D'}},  //GRENADA
       {REGDOMAIN_ETSI, {'G', 'E'}}, //GEORGIA
@@ -246,15 +292,14 @@ static CountryInfoTable_t countryInfoTable =
       {REGDOMAIN_ETSI, {'G', 'R'}}, //GREECE
       {REGDOMAIN_APAC, {'G', 'T'}},  //GUATEMALA
       {REGDOMAIN_FCC, {'G', 'U'}},  //GUAM
-      {REGDOMAIN_FCC, {'H', 'R'}}, //HUNGARY
-      {REGDOMAIN_FCC, {'H', 'U'}}, //HUNGARY
+      {REGDOMAIN_ETSI, {'H', 'U'}}, //HUNGARY
       {REGDOMAIN_ETSI, {'I', 'D'}},  //INDONESIA
-      {REGDOMAIN_FCC, {'I', 'E'}}, //IRELAND
+      {REGDOMAIN_ETSI, {'I', 'E'}}, //IRELAND
       {REGDOMAIN_ETSI, {'I', 'L'}}, //ISRAEL
       {REGDOMAIN_APAC, {'I', 'N'}}, //INDIA
       {REGDOMAIN_ETSI, {'I', 'R'}}, //IRAN, ISLAMIC REPUBLIC OF
-      {REGDOMAIN_FCC, {'I', 'S'}}, //ICELNAD
-      {REGDOMAIN_FCC, {'I', 'T'}}, //ITALY
+      {REGDOMAIN_ETSI, {'I', 'S'}}, //ICELNAD
+      {REGDOMAIN_ETSI, {'I', 'T'}}, //ITALY
       {REGDOMAIN_WORLD, {'J', 'M'}},  //JAMAICA
       {REGDOMAIN_JAPAN, {'J', 'P'}}, //JAPAN
       {REGDOMAIN_APAC, {'J', 'O'}}, //JORDAN
@@ -265,11 +310,11 @@ static CountryInfoTable_t countryInfoTable =
       {REGDOMAIN_ETSI, {'K', 'W'}}, //KUWAIT
       {REGDOMAIN_WORLD, {'K', 'Z'}}, //KAZAKHSTAN
       {REGDOMAIN_WORLD, {'L', 'B'}}, //LEBANON
-      {REGDOMAIN_FCC, {'L', 'I'}}, //LIECHTENSTEIN
+      {REGDOMAIN_ETSI, {'L', 'I'}}, //LIECHTENSTEIN
       {REGDOMAIN_WORLD, {'L', 'K'}}, //SRI-LANKA
-      {REGDOMAIN_FCC, {'L', 'T'}}, //LITHUANIA
-      {REGDOMAIN_FCC, {'L', 'U'}}, //LUXEMBOURG
-      {REGDOMAIN_FCC, {'L','V'}},  //LATVIA
+      {REGDOMAIN_ETSI, {'L', 'T'}}, //LITHUANIA
+      {REGDOMAIN_ETSI, {'L', 'U'}}, //LUXEMBOURG
+      {REGDOMAIN_ETSI, {'L','V'}},  //LATVIA
       {REGDOMAIN_ETSI, {'M', 'A'}}, //MOROCCO
       {REGDOMAIN_ETSI, {'M', 'C'}}, //MONACO
       {REGDOMAIN_ETSI, {'M', 'K'}}, //MACEDONIA, THE FORMER YUGOSLAV REPUBLIC OF
@@ -277,15 +322,15 @@ static CountryInfoTable_t countryInfoTable =
       {REGDOMAIN_APAC, {'M', 'O'}}, //MACAO
       {REGDOMAIN_FCC, {'M', 'P'}}, //NORTHERN MARIANA ISLANDS
       {REGDOMAIN_ETSI, {'M', 'Q'}}, //MARTINIQUE
-      {REGDOMAIN_FCC, {'M', 'T'}}, //MALTA
+      {REGDOMAIN_ETSI, {'M', 'T'}}, //MALTA
       {REGDOMAIN_ETSI, {'M', 'U'}}, //MAURITIUS
       {REGDOMAIN_ETSI, {'M', 'W'}}, //MALAWI
       {REGDOMAIN_APAC, {'M', 'X'}}, //MEXICO
       {REGDOMAIN_APAC, {'M', 'Y'}}, //MALAYSIA
       {REGDOMAIN_WORLD, {'N', 'G'}}, //NIGERIA
       {REGDOMAIN_WORLD, {'N', 'I'}}, //NICARAGUA
-      {REGDOMAIN_FCC, {'N', 'L'}}, //NETHERLANDS
-      {REGDOMAIN_FCC, {'N', 'O'}}, //NORWAY
+      {REGDOMAIN_ETSI, {'N', 'L'}}, //NETHERLANDS
+      {REGDOMAIN_ETSI, {'N', 'O'}}, //NORWAY
       {REGDOMAIN_APAC, {'N', 'P'}}, //NEPAL
       {REGDOMAIN_APAC, {'N', 'Z'}}, //NEW-ZEALAND
       {REGDOMAIN_ETSI, {'O', 'M'}}, //OMAN
@@ -295,33 +340,32 @@ static CountryInfoTable_t countryInfoTable =
       {REGDOMAIN_WORLD, {'P', 'G'}}, //PAPUA NEW GUINEA
       {REGDOMAIN_WORLD, {'P', 'H'}}, //PHILIPPINES
       {REGDOMAIN_ETSI, {'P', 'K'}}, //PAKISTAN
-      {REGDOMAIN_FCC, {'P', 'L'}}, //POLAND
+      {REGDOMAIN_ETSI, {'P', 'L'}}, //POLAND
       {REGDOMAIN_FCC, {'P', 'R'}}, //PUERTO RICO
       {REGDOMAIN_WORLD, {'P', 'S'}}, //PALESTINIAN TERRITORY, OCCUPIED
-      {REGDOMAIN_FCC, {'P', 'T'}}, //PORTUGAL
+      {REGDOMAIN_ETSI, {'P', 'T'}}, //PORTUGAL
       {REGDOMAIN_WORLD, {'P', 'Y'}}, //PARAGUAY
       {REGDOMAIN_ETSI, {'Q', 'A'}}, //QATAR
       {REGDOMAIN_ETSI, {'R', 'E'}}, //REUNION
-      {REGDOMAIN_FCC, {'R', 'O'}}, //ROMAINIA
+      {REGDOMAIN_ETSI, {'R', 'O'}}, //ROMAINIA
       {REGDOMAIN_ETSI, {'R', 'S'}}, //SERBIA
       {REGDOMAIN_APAC, {'R', 'U'}}, //RUSSIA
       {REGDOMAIN_WORLD, {'R', 'W'}}, //RWANDA
       {REGDOMAIN_WORLD, {'S', 'A'}}, //SAUDI ARABIA
-      {REGDOMAIN_FCC, {'S', 'E'}}, //SWEDEN
+      {REGDOMAIN_ETSI, {'S', 'E'}}, //SWEDEN
       {REGDOMAIN_APAC, {'S', 'G'}}, //SINGAPORE
-      {REGDOMAIN_FCC, {'S', 'I'}}, //SLOVENNIA
-      {REGDOMAIN_FCC, {'S', 'K'}}, //SLOVAKIA
+      {REGDOMAIN_ETSI, {'S', 'I'}}, //SLOVENNIA
+      {REGDOMAIN_ETSI, {'S', 'K'}}, //SLOVAKIA
       {REGDOMAIN_APAC, {'S', 'V'}}, //EL SALVADOR
       {REGDOMAIN_ETSI, {'S', 'Y'}}, //SYRIAN ARAB REPUBLIC
       {REGDOMAIN_WORLD, {'T', 'H'}}, //THAILAND
       {REGDOMAIN_ETSI, {'T', 'N'}}, //TUNISIA
-      {REGDOMAIN_FCC, {'T', 'R'}}, //TURKEY
+      {REGDOMAIN_ETSI, {'T', 'R'}}, //TURKEY
       {REGDOMAIN_WORLD, {'T', 'T'}}, //TRINIDAD AND TOBAGO
       {REGDOMAIN_FCC, {'T', 'W'}}, //TAIWAN, PRIVINCE OF CHINA
       {REGDOMAIN_ETSI, {'T', 'Z'}}, //TANZANIA, UNITED REPUBLIC OF
       {REGDOMAIN_WORLD, {'U', 'A'}}, //UKRAINE
       {REGDOMAIN_KOREA, {'U', 'G'}}, //UGANDA
-      {REGDOMAIN_FCC, {'U', 'K'}},
       {REGDOMAIN_FCC, {'U', 'S'}}, //USA
       {REGDOMAIN_WORLD, {'U', 'Y'}}, //URUGUAY
       {REGDOMAIN_ETSI, {'U', 'Z'}}, //UZBEKISTAN
@@ -4569,6 +4613,26 @@ void vos_getCurrentCountryCode( tANI_U8 *cc)
 {
     vos_mem_copy(cc, linux_reg_cc, 2);
 }
+
+//BEGIN IKSWO-79967, add function to check if current country need disable MHS 5G Band1
+/**------------------------------------------------------------------------
+  \brief vos_IsDisableB1Countrycode -
+  \param   countrycode
+  \return TRUE if country need disable MHS Band 1
+  \sa
+  -------------------------------------------------------------------------*/
+
+v_BOOL_t vos_IsDisableMhsBand1CountryCode(tANI_U8 *cc)
+{
+    int i;
+    for (i = 0; i < disableMhsBand1CountryInfoTable.countryCount; i++)
+    {
+        if (memcmp(cc, disableMhsBand1CountryInfoTable.countryCode[i], VOS_COUNTRY_CODE_LEN) == 0)
+            return VOS_TRUE;
+    }
+    return VOS_FALSE;
+}
+//END IKSWO-79967
 
 #else
 
