@@ -1018,7 +1018,7 @@ int fts_ft8006m_pram_write_remap(struct i2c_client *client)
 	}
 
 	if (fw->size < FTS_MIN_LEN) {
-		FTS_ERROR("[UPGRADE]pramboot length(%x) fail\n", fw->size);
+		FTS_ERROR("[UPGRADE]pramboot length(%zd) fail\n", fw->size);
 		return -EINVAL;
 	}
 
