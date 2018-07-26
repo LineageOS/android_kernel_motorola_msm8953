@@ -1434,7 +1434,7 @@ WLANSAP_SetChannelRange(tHalHandle hHal,v_U8_t startChannel, v_U8_t endChannel,
     {
        case eSAP_RF_SUBBAND_2_4_GHZ:
           bandStartChannel = RF_CHAN_1;
-          bandEndChannel = RF_CHAN_14;
+          bandEndChannel = RF_CHAN_11; //IKSWP-4221
           break;
 
        case eSAP_RF_SUBBAND_5_LOW_GHZ:
@@ -1453,12 +1453,12 @@ WLANSAP_SetChannelRange(tHalHandle hHal,v_U8_t startChannel, v_U8_t endChannel,
 
        case eSAP_RF_SUBBAND_5_HIGH_GHZ:
           bandStartChannel = RF_CHAN_149;
-          bandEndChannel = RF_CHAN_165;
+          bandEndChannel = RF_CHAN_161; //IKSWP-4221
           break;
 
        case eSAP_RF_SUBBAND_5_ALL_GHZ:
           bandStartChannel = RF_CHAN_36;
-          bandEndChannel = RF_CHAN_165;
+          bandEndChannel = RF_CHAN_161; //IKSWP-4221
           break;
 
        default:
