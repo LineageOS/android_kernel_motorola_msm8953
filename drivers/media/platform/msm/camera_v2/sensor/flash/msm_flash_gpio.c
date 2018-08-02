@@ -22,6 +22,7 @@
 
 #undef CDBG
 #define CDBG(fmt, args...) pr_debug(fmt, ##args)
+enum msm_flash_driver_type flash_type_gpio = FLASH_DRIVER_DEFAULT;
 DEFINE_MSM_MUTEX(msm_flash_mutex);
 
 static struct v4l2_file_operations msm_flash_v4l2_subdev_fops;
@@ -173,6 +174,7 @@ static int32_t msm_flash_init(
 	enum msm_flash_driver_type flash_driver_type = FLASH_DRIVER_DEFAULT;
 
 	CDBG("Enter");
+	flash_type_gpio = flash_data->cfg.flash_init_info->flash_driver_type;
 	if (flash_ctrl->flash_state == MSM_CAMERA_FLASH_INIT) {
 		pr_err("%s:%d Invalid flash state = %d",
 			__func__, __LINE__, flash_ctrl->flash_state);
@@ -216,34 +218,6 @@ static int32_t msm_flash_init(
 	return 0;
 }
 
-static int32_t msm_flash_init_prepare(
-	struct msm_flash_ctrl_t *flash_ctrl,
-	struct msm_flash_cfg_data_t *flash_data)
-{
-	struct msm_flash_cfg_data_t flash_data_k;
-	struct msm_flash_init_info_t flash_init_info;
-	int32_t i = 0;
-	flash_data_k.cfg_type = flash_data->cfg_type;
-
-	for (i = 0; i < MAX_LED_TRIGGERS; i++) {
-		flash_data_k.flash_current[i] =
-			flash_data->flash_current[i];
-		flash_data_k.flash_duration[i] =
-			flash_data->flash_duration[i];
-	}
-
-	flash_data_k.cfg.flash_init_info = &flash_init_info;
-	if (copy_from_user(&flash_init_info,
-		(void __user *)(flash_data->cfg.flash_init_info),
-		sizeof(struct msm_flash_init_info_t))) {
-		pr_err("%s copy_from_user failed %d\n",
-			__func__, __LINE__);
-		return -EFAULT;
-	}
-
-	return msm_flash_init(flash_ctrl, &flash_data_k);
-}
-
 static int32_t msm_flash_low(
 	struct msm_flash_ctrl_t *flash_ctrl,
 	struct msm_flash_cfg_data_t *flash_data)
@@ -263,7 +237,7 @@ static int32_t msm_flash_low(
 		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[0],
 		GPIO_OUT_HIGH);
-		for (i = 0 ; i <= 9 ; i++) {
+		for (i = 0 ; i <= 14 ; i++) {
 			gpio_set_value(
 			power_info->gpio_conf->gpio_num_info->gpio_num[0],
 			GPIO_OUT_LOW);
@@ -303,7 +277,7 @@ static int32_t msm_flash_high(
 		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[0],
 		GPIO_OUT_HIGH);
-		for (i = 0 ; i <= 1 ; i++) {
+		for (i = 0 ; i <= 10 ; i++) {
 			gpio_set_value(
 			power_info->gpio_conf->gpio_num_info->gpio_num[0],
 			GPIO_OUT_LOW);
@@ -373,7 +347,7 @@ static int32_t msm_flash_config(struct msm_flash_ctrl_t *flash_ctrl,
 
 	switch (flash_data->cfg_type) {
 	case CFG_FLASH_INIT:
-		rc = msm_flash_init_prepare(flash_ctrl, flash_data);
+		rc = msm_flash_init(flash_ctrl, flash_data);
 		break;
 	case CFG_FLASH_RELEASE:
 		if (flash_ctrl->flash_state == MSM_CAMERA_FLASH_INIT)
