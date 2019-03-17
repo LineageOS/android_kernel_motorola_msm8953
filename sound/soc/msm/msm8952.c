@@ -39,6 +39,10 @@
 #include <sound/tas2560_algo.h>
 #endif
 
+/* [HACK] Load sound struct based on socId */
+#include <soc/qcom/socinfo.h>
+#define IS_MSM8940 (313)
+
 #define DRV_NAME "msm8952-asoc-wcd"
 
 #define BTSCO_RATE_8KHZ 8000
@@ -1936,10 +1940,12 @@ static int cs35l35_dai_init(struct snd_soc_pcm_runtime *rtd)
 static int tas2560_dai_init(struct snd_soc_pcm_runtime *rtd)
 {
 	int ret = 0;
+	if(IS_MSM8940 == socinfo_get_id())
 	ret = tas2560_algo_routing_init(rtd);
 	return ret;
 }
 #endif
+
 /* Digital audio interface glue - connects codec <---> CPU */
 static struct snd_soc_dai_link msm8952_dai[] = {
 	/* FrontEnd DAI Links */
@@ -3008,6 +3014,1035 @@ static struct snd_soc_dai_link msm8952_dai[] = {
 	},
 #endif
 };
+static struct snd_soc_dai_link msm8952_dai_hax[] = {
+	/* FrontEnd DAI Links */
+	{/* hw:x,0 */
+		.name = "MSM8952 Media1",
+		.stream_name = "MultiMedia1",
+		.cpu_dai_name	= "MultiMedia1",
+		.platform_name  = "msm-pcm-dsp.0",
+		.dynamic = 1,
+		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA1
+	},
+	{/* hw:x,1 */
+		.name = "MSM8952 Media2",
+		.stream_name = "MultiMedia2",
+		.cpu_dai_name   = "MultiMedia2",
+		.platform_name  = "msm-pcm-dsp.0",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA2,
+	},
+	{/* hw:x,2 */
+		.name = "Circuit-Switch Voice",
+		.stream_name = "CS-Voice",
+		.cpu_dai_name   = "CS-VOICE",
+		.platform_name  = "msm-pcm-voice",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_CS_VOICE,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	{/* hw:x,3 */
+		.name = "MSM VoIP",
+		.stream_name = "VoIP",
+		.cpu_dai_name	= "VoIP",
+		.platform_name  = "msm-voip-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_VOIP,
+	},
+	{/* hw:x,4 */
+		.name = "MSM8X16 ULL",
+		.stream_name = "ULL",
+		.cpu_dai_name	= "MultiMedia3",
+		.platform_name  = "msm-pcm-dsp.2",
+		.dynamic = 1,
+		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA3,
+	},
+	/* Hostless PCM purpose */
+	{/* hw:x,5 */
+		.name = "Primary MI2S_RX Hostless",
+		.stream_name = "Primary MI2S_RX Hostless",
+		.cpu_dai_name = "PRI_MI2S_RX_HOSTLESS",
+		.platform_name	= "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		 /* this dailink has playback support */
+		.ignore_pmdown_time = 1,
+		/* This dainlink has MI2S support */
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	{/* hw:x,6 */
+		.name = "INT_FM Hostless",
+		.stream_name = "INT_FM Hostless",
+		.cpu_dai_name	= "INT_FM_HOSTLESS",
+		.platform_name  = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	{/* hw:x,7 */
+		.name = "MSM AFE-PCM RX",
+		.stream_name = "AFE-PROXY RX",
+		.cpu_dai_name = "msm-dai-q6-dev.241",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-rx",
+		.platform_name  = "msm-pcm-afe",
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+	},
+	{/* hw:x,8 */
+		.name = "MSM AFE-PCM TX",
+		.stream_name = "AFE-PROXY TX",
+		.cpu_dai_name = "msm-dai-q6-dev.240",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-tx",
+		.platform_name  = "msm-pcm-afe",
+		.ignore_suspend = 1,
+	},
+	{/* hw:x,9 */
+		.name = "MSM8952 Compress1",
+		.stream_name = "Compress1",
+		.cpu_dai_name	= "MultiMedia4",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.async_ops = ASYNC_DPCM_SND_SOC_HW_PARAMS,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		/* this dainlink has playback support */
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA4,
+	},
+	{/* hw:x,10 */
+		.name = "AUXPCM Hostless",
+		.stream_name = "AUXPCM Hostless",
+		.cpu_dai_name   = "AUXPCM_HOSTLESS",
+		.platform_name  = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	{/* hw:x,11 */
+		.name = "Tertiary MI2S_TX Hostless",
+		.stream_name = "Tertiary MI2S_TX Hostless",
+		.cpu_dai_name = "TERT_MI2S_TX_HOSTLESS",
+		.platform_name  = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1, /* dai link has playback support */
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	{/* hw:x,12 */
+		.name = "MSM8x16 LowLatency",
+		.stream_name = "MultiMedia5",
+		.cpu_dai_name   = "MultiMedia5",
+		.platform_name  = "msm-pcm-dsp.1",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE |
+			ASYNC_DPCM_SND_SOC_HW_PARAMS,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA5,
+	},
+	{/* hw:x,13 */
+		.name = "Voice2",
+		.stream_name = "Voice2",
+		.cpu_dai_name   = "Voice2",
+		.platform_name  = "msm-pcm-voice",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_VOICE2,
+	},
+	{/* hw:x,14 */
+		.name = "MSM8x16 Media9",
+		.stream_name = "MultiMedia9",
+		.cpu_dai_name   = "MultiMedia9",
+		.platform_name  = "msm-pcm-dsp.0",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ignore_suspend = 1,
+		/* This dailink has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA9,
+	},
+	{ /* hw:x,15 */
+		.name = "VoLTE",
+		.stream_name = "VoLTE",
+		.cpu_dai_name   = "VoLTE",
+		.platform_name  = "msm-pcm-voice",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_VOLTE,
+	},
+	{ /* hw:x,16 */
+		.name = "VoWLAN",
+		.stream_name = "VoWLAN",
+		.cpu_dai_name   = "VoWLAN",
+		.platform_name  = "msm-pcm-voice",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_VOWLAN,
+	},
+	{/* hw:x,17 */
+		.name = "INT_HFP_BT Hostless",
+		.stream_name = "INT_HFP_BT Hostless",
+		.cpu_dai_name = "INT_HFP_BT_HOSTLESS",
+		.platform_name  = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dai link has playback support */
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	{/* hw:x,18 */
+		.name = "MSM8916 HFP",
+		.stream_name = "MultiMedia6",
+		.cpu_dai_name = "MultiMedia6",
+		.platform_name  = "msm-pcm-loopback",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ignore_suspend = 1,
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		/* this dai link has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA6,
+	},
+	/* LSM FE */
+	{/* hw:x,19 */
+		.name = "Listen 1 Audio Service",
+		.stream_name = "Listen 1 Audio Service",
+		.cpu_dai_name = "LSM1",
+		.platform_name = "msm-lsm-client",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST },
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_LSM1,
+	},
+	{/* hw:x,20 */
+		.name = "Listen 2 Audio Service",
+		.stream_name = "Listen 2 Audio Service",
+		.cpu_dai_name = "LSM2",
+		.platform_name = "msm-lsm-client",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST },
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_LSM2,
+	},
+	{/* hw:x,21 */
+		.name = "Listen 3 Audio Service",
+		.stream_name = "Listen 3 Audio Service",
+		.cpu_dai_name = "LSM3",
+		.platform_name = "msm-lsm-client",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST },
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_LSM3,
+	},
+	{/* hw:x,22 */
+		.name = "Listen 4 Audio Service",
+		.stream_name = "Listen 4 Audio Service",
+		.cpu_dai_name = "LSM4",
+		.platform_name = "msm-lsm-client",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST },
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_LSM4,
+	},
+	{/* hw:x,23 */
+		.name = "Listen 5 Audio Service",
+		.stream_name = "Listen 5 Audio Service",
+		.cpu_dai_name = "LSM5",
+		.platform_name = "msm-lsm-client",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST },
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_LSM5,
+	},
+	{ /* hw:x,24 */
+		.name = "MSM8X16 Compress2",
+		.stream_name = "Compress2",
+		.cpu_dai_name   = "MultiMedia7",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA7,
+	},
+	{ /* hw:x,25 */
+		.name = "QUAT_MI2S Hostless",
+		.stream_name = "QUAT_MI2S Hostless",
+		.cpu_dai_name = "QUAT_MI2S_RX_HOSTLESS",
+		.platform_name = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	{/* hw:x,26 */
+		.name = LPASS_BE_SENARY_MI2S_TX,
+		.stream_name = "Senary_mi2s Capture",
+		.cpu_dai_name = "msm-dai-q6-mi2s.6",
+		.platform_name = "msm-pcm-hostless",
+		.codec_name = "cajon_codec",
+		.codec_dai_name = "cajon_vifeedback",
+		.be_id = MSM_BACKEND_DAI_SENARY_MI2S_TX,
+		.be_hw_params_fixup = msm_senary_tx_be_hw_params_fixup,
+		.ops = &msm8952_mi2s_be_ops,
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.dpcm_capture = 1,
+		.ignore_pmdown_time = 1,
+	},
+	{/* hw:x,27 */
+		.name = "MSM8X16 Compress3",
+		.stream_name = "Compress3",
+		.cpu_dai_name	= "MultiMedia10",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		 /* this dai link has playback support */
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA10,
+	},
+	{/* hw:x,28 */
+		.name = "MSM8X16 Compress4",
+		.stream_name = "Compress4",
+		.cpu_dai_name	= "MultiMedia11",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		 /* this dai link has playback support */
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA11,
+	},
+	{/* hw:x,29 */
+		.name = "MSM8X16 Compress5",
+		.stream_name = "Compress5",
+		.cpu_dai_name	= "MultiMedia12",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		 /* this dai link has playback support */
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA12,
+	},
+	{/* hw:x,30 */
+		.name = "MSM8X16 Compress6",
+		.stream_name = "Compress6",
+		.cpu_dai_name	= "MultiMedia13",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		 /* this dai link has playback support */
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA13,
+	},
+	{/* hw:x,31 */
+		.name = "MSM8X16 Compress7",
+		.stream_name = "Compress7",
+		.cpu_dai_name	= "MultiMedia14",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		 /* this dai link has playback support */
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA14,
+	},
+	{/* hw:x,32 */
+		.name = "MSM8X16 Compress8",
+		.stream_name = "Compress8",
+		.cpu_dai_name	= "MultiMedia15",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		 /* this dai link has playback support */
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA15,
+	},
+	{/* hw:x,33 */
+		.name = "MSM8X16 Compress9",
+		.stream_name = "Compress9",
+		.cpu_dai_name	= "MultiMedia16",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		 /* this dai link has playback support */
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA16,
+	},
+	{/* hw:x,34 */
+		.name = "VoiceMMode1",
+		.stream_name = "VoiceMMode1",
+		.cpu_dai_name   = "VoiceMMode1",
+		.platform_name  = "msm-pcm-voice",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_VOICEMMODE1,
+	},
+	{/* hw:x,35 */
+		.name = "VoiceMMode2",
+		.stream_name = "VoiceMMode2",
+		.cpu_dai_name   = "VoiceMMode2",
+		.platform_name  = "msm-pcm-voice",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.be_id = MSM_FRONTEND_DAI_VOICEMMODE2,
+	},
+	{/* hw:x,36 */
+		.name = "MSM8916 HFP Loopback2",
+		.stream_name = "MultiMedia8",
+		.cpu_dai_name = "MultiMedia8",
+		.platform_name  = "msm-pcm-loopback",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ignore_suspend = 1,
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		/* this dai link has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA8,
+	},
+	{/* hw:x,37 */
+		.name = "QCHAT",
+		.stream_name = "QCHAT",
+		.cpu_dai_name = "QCHAT",
+		.platform_name  = "msm-pcm-voice",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.dpcm_capture = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.ignore_suspend = 1,
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		/* this dai link has playback support */
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_QCHAT,
+	},
+	{/* hw:x,38 */
+		.name = "MSM8X16 Compress10",
+		.stream_name = "Compress10",
+		.cpu_dai_name	= "MultiMedia17",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA17,
+	},
+	{/* hw:x,39 */
+		.name = "MSM8X16 Compress11",
+		.stream_name = "Compress11",
+		.cpu_dai_name	= "MultiMedia18",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA18,
+	},
+	{/* hw:x,40 */
+		.name = "MSM8X16 Compress12",
+		.stream_name = "Compress12",
+		.cpu_dai_name	= "MultiMedia19",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA19,
+	},
+	{/* hw:x,41 */
+		.name = "MSM8X16 Compress13",
+		.stream_name = "Compress13",
+		.cpu_dai_name	= "MultiMedia28",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA28,
+	},
+	{/* hw:x,42 */
+		.name = "MSM8X16 Compress14",
+		.stream_name = "Compress14",
+		.cpu_dai_name	= "MultiMedia29",
+		.platform_name  = "msm-compress-dsp",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.be_id = MSM_FRONTEND_DAI_MULTIMEDIA29,
+	},
+	{ /* hw:x, 41 */
+		.name = "QUIN_MI2S_TX Hostless",
+		.stream_name = "Quinary MI2S_TX Hostless Capture",
+		.cpu_dai_name = "QUIN_MI2S_TX_HOSTLESS",
+		.platform_name = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_capture = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	{ /* hw:x, 42 */
+		.name = "Quinary MI2S_RX Hostless",
+		.stream_name = "QUIN_MI2S Hostless",
+		.cpu_dai_name = "QUIN_MI2S_RX_HOSTLESS",
+		.platform_name = "msm-pcm-hostless",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+				SND_SOC_DPCM_TRIGGER_POST},
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+	},
+	/* Backend I2S DAI Links */
+	{
+		.name = LPASS_BE_PRI_MI2S_RX,
+		.stream_name = "Primary MI2S Playback",
+		.cpu_dai_name = "msm-dai-q6-mi2s.0",
+		.platform_name = "msm-pcm-routing",
+		.codec_name     = "cajon_codec",
+		.codec_dai_name = "msm8x16_wcd_i2s_rx1",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE |
+			ASYNC_DPCM_SND_SOC_HW_PARAMS,
+		.be_id = MSM_BACKEND_DAI_PRI_MI2S_RX,
+		.init = &msm_audrx_init,
+		.be_hw_params_fixup = msm_mi2s_rx_be_hw_params_fixup,
+		.ops = &msm8952_mi2s_be_ops,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_SEC_MI2S_RX,
+		.stream_name = "Secondary MI2S Playback",
+		.cpu_dai_name = "msm-dai-q6-mi2s.1",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-rx",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_SECONDARY_MI2S_RX,
+		.be_hw_params_fixup = msm_mi2s_rx_be_hw_params_fixup,
+		.ops = &msm8952_sec_mi2s_be_ops,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_TERT_MI2S_TX,
+		.stream_name = "Tertiary MI2S Capture",
+		.cpu_dai_name = "msm-dai-q6-mi2s.2",
+		.platform_name = "msm-pcm-routing",
+		.codec_name     = "cajon_codec",
+		.codec_dai_name = "msm8x16_wcd_i2s_tx1",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE |
+			ASYNC_DPCM_SND_SOC_HW_PARAMS,
+		.be_id = MSM_BACKEND_DAI_TERTIARY_MI2S_TX,
+		.be_hw_params_fixup = msm_tx_be_hw_params_fixup,
+		.ops = &msm8952_mi2s_be_ops,
+		.ignore_suspend = 1,
+	},
+#if defined(CONFIG_SND_SOC_CS35L35) && defined(CONFIG_SND_CS35L35_QUAT_I2S)
+	{
+		.name = LPASS_BE_QUAT_MI2S_RX,
+		.stream_name = "Quaternary MI2S Playback",
+		.cpu_dai_name = "msm-dai-q6-mi2s.3",
+		.platform_name = "msm-pcm-routing",
+		.codec_name =  "cs35l35.2-0040",
+		.codec_dai_name = "cs35l35-pcm",
+		.init = cs35l35_dai_init,
+		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
+			SND_SOC_DAIFMT_CBS_CFS,
+		.dpcm_playback = 1,
+		.no_pcm = 1,
+		.be_id = MSM_BACKEND_DAI_QUATERNARY_MI2S_RX,
+		.be_hw_params_fixup = msm_mi2s_rx_be_hw_params_fixup,
+		.ops = &msm8952_quat_mi2s_be_ops,
+		.ignore_pmdown_time = 1, /* dai link has playback support */
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_QUAT_MI2S_TX,
+		.stream_name = "Quaternary MI2S Capture",
+		.cpu_dai_name = "msm-dai-q6-mi2s.3",
+		.platform_name = "msm-pcm-hostless",
+		.codec_dai_name = "cs35l35-pcm",
+		.codec_name = "cs35l35.2-0040",
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.no_host_mode = SND_SOC_DAI_LINK_NO_HOST,
+		.ops = &msm8952_quat_mi2s_be_ops,
+		.ignore_suspend = 1,
+		.be_id = MSM_BACKEND_DAI_QUATERNARY_MI2S_TX,
+	},
+#else
+	{
+		.name = LPASS_BE_QUAT_MI2S_RX,
+		.stream_name = "Quaternary MI2S Playback",
+		.cpu_dai_name = "msm-dai-q6-mi2s.3",
+		.platform_name = "msm-pcm-routing",
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_QUATERNARY_MI2S_RX,
+		.be_hw_params_fixup = msm_mi2s_rx_be_hw_params_fixup,
+		.ops = &msm8952_quat_mi2s_be_ops,
+		.ignore_pmdown_time = 1, /* dai link has playback support */
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_QUAT_MI2S_TX,
+		.stream_name = "Quaternary MI2S Capture",
+		.cpu_dai_name = "msm-dai-q6-mi2s.3",
+		.platform_name = "msm-pcm-routing",
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_QUATERNARY_MI2S_TX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ops = &msm8952_quat_mi2s_be_ops,
+		.ignore_suspend = 1,
+	},
+#endif
+	/* Primary AUX PCM Backend DAI Links */
+	{
+		.name = LPASS_BE_AUXPCM_RX,
+		.stream_name = "AUX PCM Playback",
+		.cpu_dai_name = "msm-dai-q6-auxpcm.1",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-rx",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_AUXPCM_RX,
+		.be_hw_params_fixup = msm_auxpcm_be_params_fixup,
+		.ops = &msm_pri_auxpcm_be_ops,
+		.ignore_pmdown_time = 1,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_AUXPCM_TX,
+		.stream_name = "AUX PCM Capture",
+		.cpu_dai_name = "msm-dai-q6-auxpcm.1",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-tx",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_AUXPCM_TX,
+		.be_hw_params_fixup = msm_auxpcm_be_params_fixup,
+		.ops = &msm_pri_auxpcm_be_ops,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_INT_BT_SCO_RX,
+		.stream_name = "Internal BT-SCO Playback",
+		.cpu_dai_name = "msm-dai-q6-dev.12288",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name	= "msm-stub-rx",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_INT_BT_SCO_RX,
+		.be_hw_params_fixup = msm_btsco_be_hw_params_fixup,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_INT_BT_SCO_TX,
+		.stream_name = "Internal BT-SCO Capture",
+		.cpu_dai_name = "msm-dai-q6-dev.12289",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name	= "msm-stub-tx",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_INT_BT_SCO_TX,
+		.be_hw_params_fixup = msm_btsco_be_hw_params_fixup,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_INT_FM_RX,
+		.stream_name = "Internal FM Playback",
+		.cpu_dai_name = "msm-dai-q6-dev.12292",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-rx",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_INT_FM_RX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_INT_FM_TX,
+		.stream_name = "Internal FM Capture",
+		.cpu_dai_name = "msm-dai-q6-dev.12293",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-tx",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_INT_FM_TX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_AFE_PCM_RX,
+		.stream_name = "AFE Playback",
+		.cpu_dai_name = "msm-dai-q6-dev.224",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-rx",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_AFE_PCM_RX,
+		.be_hw_params_fixup = msm_proxy_rx_be_hw_params_fixup,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_AFE_PCM_TX,
+		.stream_name = "AFE Capture",
+		.cpu_dai_name = "msm-dai-q6-dev.225",
+		.platform_name = "msm-pcm-routing",
+		.codec_name = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-tx",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_AFE_PCM_TX,
+		.be_hw_params_fixup = msm_proxy_tx_be_hw_params_fixup,
+		.ignore_suspend = 1,
+	},
+	/* Incall Record Uplink BACK END DAI Link */
+	{
+		.name = LPASS_BE_INCALL_RECORD_TX,
+		.stream_name = "Voice Uplink Capture",
+		.cpu_dai_name = "msm-dai-q6-dev.32772",
+		.platform_name = "msm-pcm-routing",
+		.codec_name     = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-tx",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_INCALL_RECORD_TX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ignore_suspend = 1,
+	},
+	/* Incall Record Downlink BACK END DAI Link */
+	{
+		.name = LPASS_BE_INCALL_RECORD_RX,
+		.stream_name = "Voice Downlink Capture",
+		.cpu_dai_name = "msm-dai-q6-dev.32771",
+		.platform_name = "msm-pcm-routing",
+		.codec_name     = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-tx",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_INCALL_RECORD_RX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ignore_suspend = 1,
+	},
+	/* Incall Music BACK END DAI Link */
+	{
+		.name = LPASS_BE_VOICE_PLAYBACK_TX,
+		.stream_name = "Voice Farend Playback",
+		.cpu_dai_name = "msm-dai-q6-dev.32773",
+		.platform_name = "msm-pcm-routing",
+		.codec_name     = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-rx",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_VOICE_PLAYBACK_TX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ignore_suspend = 1,
+	},
+	/* Incall Music 2 BACK END DAI Link */
+	{
+		.name = LPASS_BE_VOICE2_PLAYBACK_TX,
+		.stream_name = "Voice2 Farend Playback",
+		.cpu_dai_name = "msm-dai-q6-dev.32770",
+		.platform_name = "msm-pcm-routing",
+		.codec_name     = "msm-stub-codec.1",
+		.codec_dai_name = "msm-stub-rx",
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_VOICE2_PLAYBACK_TX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ignore_suspend = 1,
+	},
+	{
+		.name = LPASS_BE_QUIN_MI2S_TX,
+		.stream_name = "Quinary MI2S Capture",
+		.cpu_dai_name = "msm-dai-q6-mi2s.5",
+		.platform_name = "msm-pcm-routing",
+		.codec_dai_name = "tas2560 ASI1",
+		.codec_name = "tas2560.2-004c",
+		.no_pcm = 1,
+		.dpcm_capture = 1,
+		.be_id = MSM_BACKEND_DAI_QUINARY_MI2S_TX,
+		.be_hw_params_fixup = msm_be_hw_params_fixup,
+		.ops = &msm8952_quin_mi2s_be_ops,
+		.ignore_suspend = 1,
+	},
+};
 
 static struct snd_soc_dai_link msm8952_hdmi_dba_dai_link[] = {
 	{
@@ -3069,6 +4104,24 @@ static struct snd_soc_dai_link msm8952_quin_dai_link[] = {
 	},
 #endif
 };
+static struct snd_soc_dai_link msm8952_quin_dai_link_hax[] = {
+	{
+		.name = LPASS_BE_QUIN_MI2S_RX,
+		.stream_name = "Quinary MI2S Playback",
+		.cpu_dai_name = "msm-dai-q6-mi2s.5",
+		.platform_name = "msm-pcm-routing",
+		.codec_dai_name = "tas2560 ASI1",
+		.codec_name = "tas2560.2-004c",
+		.init = &tas2560_dai_init,
+		.no_pcm = 1,
+		.dpcm_playback = 1,
+		.be_id = MSM_BACKEND_DAI_QUINARY_MI2S_RX,
+		.be_hw_params_fixup = msm_mi2s_rx_be_hw_params_fixup,
+		.ops = &msm8952_quin_mi2s_be_ops,
+		.ignore_pmdown_time = 1, /* dai link has playback support */
+		.ignore_suspend = 1,
+	},
+};
 
 static struct snd_soc_dai_link msm8952_split_a2dp_dai_link[] = {
 	{
@@ -3089,6 +4142,11 @@ static struct snd_soc_dai_link msm8952_split_a2dp_dai_link[] = {
 
 static struct snd_soc_dai_link msm8952_dai_links[
 ARRAY_SIZE(msm8952_dai) +
+ARRAY_SIZE(msm8952_hdmi_dba_dai_link) +
+ARRAY_SIZE(msm8952_split_a2dp_dai_link)];
+
+static struct snd_soc_dai_link msm8952_dai_links_hax[
+ARRAY_SIZE(msm8952_dai_hax) +
 ARRAY_SIZE(msm8952_hdmi_dba_dai_link) +
 ARRAY_SIZE(msm8952_split_a2dp_dai_link)];
 
@@ -3126,6 +4184,13 @@ static struct snd_soc_card bear_card = {
 	.name		= "msm8952-snd-card",
 	.dai_link	= msm8952_dai,
 	.num_links	= ARRAY_SIZE(msm8952_dai),
+};
+
+static struct snd_soc_card bear_card_hax = {
+	/* snd_soc_card_msm8952 */
+	.name		= "msm8952-snd-card",
+	.dai_link	= msm8952_dai_hax,
+	.num_links	= ARRAY_SIZE(msm8952_dai_hax),
 };
 
 void msm8952_disable_mclk(struct work_struct *work)
@@ -3365,17 +4430,27 @@ int msm8952_init_wsa_switch_supply(struct platform_device *pdev,
 	return ret;
 }
 
+
 static struct snd_soc_card *msm8952_populate_sndcard_dailinks(
 						struct device *dev)
 {
-	struct snd_soc_card *card = &bear_card;
+	struct snd_soc_card *card;
 	struct snd_soc_dai_link *dailink;
-	int len1;
-
+        int len1;
+	if (!(IS_MSM8940 == socinfo_get_id()))
+		card = &bear_card;
+	else
+		card = &bear_card_hax;
 	card->name = dev_name(dev);
-	len1 = ARRAY_SIZE(msm8952_dai);
-	memcpy(msm8952_dai_links, msm8952_dai, sizeof(msm8952_dai));
-	dailink = msm8952_dai_links;
+	if(!(IS_MSM8940 == socinfo_get_id())){
+		len1 = ARRAY_SIZE(msm8952_dai);
+		memcpy(msm8952_dai_links, msm8952_dai, sizeof(msm8952_dai));
+		dailink = msm8952_dai_links;
+	} else {
+		len1 = ARRAY_SIZE(msm8952_dai_hax);
+		memcpy(msm8952_dai_links_hax, msm8952_dai_hax, sizeof(msm8952_dai_hax));
+		dailink = msm8952_dai_links_hax;
+	}
 	if (of_property_read_bool(dev->of_node,
 				"qcom,hdmi-dba-codec-rx")) {
 		dev_dbg(dev, "%s(): hdmi audio support present\n",
@@ -3386,9 +4461,16 @@ static struct snd_soc_card *msm8952_populate_sndcard_dailinks(
 	} else {
 		dev_dbg(dev, "%s(): No hdmi dba present, add quin dai\n",
 				__func__);
+		if (!(IS_MSM8940 == socinfo_get_id())){
 		memcpy(dailink + len1, msm8952_quin_dai_link,
 				sizeof(msm8952_quin_dai_link));
 		len1 += ARRAY_SIZE(msm8952_quin_dai_link);
+		}
+		else {
+		memcpy(dailink + len1, msm8952_quin_dai_link_hax,
+				sizeof(msm8952_quin_dai_link_hax));
+		len1 += ARRAY_SIZE(msm8952_quin_dai_link_hax);
+		}
 	}
 	if (of_property_read_bool(dev->of_node,
 				"qcom,split-a2dp")) {
@@ -3512,10 +4594,18 @@ parse_mclk_freq:
 			ret = -EPROBE_DEFER;
 			goto err;
 		} else if (wsa881x_get_presence_count() == num_strings) {
+			if(!(IS_MSM8940 == socinfo_get_id())){
 			bear_card.aux_dev = msm8952_aux_dev;
 			bear_card.num_aux_devs = num_strings;
 			bear_card.codec_conf = msm8952_codec_conf;
 			bear_card.num_configs = num_strings;
+			} else {
+			bear_card_hax.aux_dev = msm8952_aux_dev;
+                        bear_card_hax.num_aux_devs = num_strings;
+                        bear_card_hax.codec_conf = msm8952_codec_conf;
+                        bear_card_hax.num_configs = num_strings;
+
+			}
 
 			for (i = 0; i < num_strings; i++) {
 				ret = of_property_read_string_index(
@@ -3713,6 +4803,7 @@ err:
 		iounmap(pdata->vaddr_gpio_mux_pcm_ctl);
 	if (pdata->vaddr_gpio_mux_quin_ctl)
 		iounmap(pdata->vaddr_gpio_mux_quin_ctl);
+	if (!(IS_MSM8940 == socinfo_get_id())){
 	if (bear_card.num_aux_devs > 0) {
 		for (i = 0; i < bear_card.num_aux_devs; i++) {
 			kfree(msm8952_aux_dev[i].codec_name);
@@ -3720,6 +4811,17 @@ err:
 			kfree(msm8952_codec_conf[i].name_prefix);
 		}
 	}
+	} else {
+        if (bear_card_hax.num_aux_devs > 0) {
+                for (i = 0; i < bear_card_hax.num_aux_devs; i++) {
+                        kfree(msm8952_aux_dev[i].codec_name);
+                        kfree(msm8952_codec_conf[i].dev_name);
+                        kfree(msm8952_codec_conf[i].name_prefix);
+                }
+        }
+
+}
+
 err1:
 	devm_kfree(&pdev->dev, pdata);
 	return ret;
@@ -3739,6 +4841,7 @@ static int msm8952_asoc_machine_remove(struct platform_device *pdev)
 		iounmap(pdata->vaddr_gpio_mux_pcm_ctl);
 	if (pdata->vaddr_gpio_mux_quin_ctl)
 		iounmap(pdata->vaddr_gpio_mux_quin_ctl);
+	if (!(IS_MSM8940 == socinfo_get_id())){
 	if (bear_card.num_aux_devs > 0) {
 		for (i = 0; i < bear_card.num_aux_devs; i++) {
 			kfree(msm8952_aux_dev[i].codec_name);
@@ -3747,6 +4850,17 @@ static int msm8952_asoc_machine_remove(struct platform_device *pdev)
 		}
 		mutex_destroy(&pdata->wsa_mclk_mutex);
 	}
+	} else {
+	        if (bear_card_hax.num_aux_devs > 0) {
+                for (i = 0; i < bear_card_hax.num_aux_devs; i++) {
+                        kfree(msm8952_aux_dev[i].codec_name);
+                        kfree(msm8952_codec_conf[i].dev_name);
+                        kfree(msm8952_codec_conf[i].name_prefix);
+                }
+                mutex_destroy(&pdata->wsa_mclk_mutex);
+        }
+
+}
 	snd_soc_unregister_card(card);
 	mutex_destroy(&pdata->cdc_mclk_mutex);
 	return 0;
