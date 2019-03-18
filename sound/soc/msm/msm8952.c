@@ -42,7 +42,7 @@
 /* [HACK] Load sound struct based on socId */
 #include <soc/qcom/socinfo.h>
 #define IS_MSM8940 (313)
-static bool get_soc(void){
+static inline bool get_soc(void){
 	return (IS_MSM8940 == socinfo_get_id()) ? true : false;
 }
 
