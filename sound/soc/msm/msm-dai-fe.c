@@ -23,6 +23,9 @@
 /* [HACK] Load sound struct based on socId */
 #include <soc/qcom/socinfo.h>
 #define IS_MSM8940 (313)
+static bool get_soc(void){
+	return (IS_MSM8940 == socinfo_get_id()) ? true : false;
+}
 
 static struct snd_soc_dai_ops msm_fe_dai_ops = {};
 
@@ -5252,9 +5255,10 @@ static struct snd_soc_dai_driver msm_fe_dais_hax[] = {
 static int msm_fe_dai_dev_probe(struct platform_device *pdev)
 {
 
+	const bool rhannah = get_soc();
 	dev_dbg(&pdev->dev, "%s: dev name %s\n", __func__,
 		dev_name(&pdev->dev));
-	if (!(IS_MSM8940 == socinfo_get_id())) {
+	if (!rhannah) {
 	return snd_soc_register_component(&pdev->dev, &msm_fe_dai_component,
 		msm_fe_dais, ARRAY_SIZE(msm_fe_dais));
 	}
