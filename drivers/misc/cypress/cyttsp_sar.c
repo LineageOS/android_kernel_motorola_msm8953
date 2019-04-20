@@ -909,7 +909,7 @@ static void cyttsp_reg_setup_init(struct i2c_client *client)
 
 static int cyttsp_initialize_regulator(struct cyttsp_sar_data *data)
 {
-	int ret;
+	int ret = 0;
 	struct i2c_client *client = data->client;
 
 	data->regulator_vdd = devm_regulator_get(&client->dev, "vdd");

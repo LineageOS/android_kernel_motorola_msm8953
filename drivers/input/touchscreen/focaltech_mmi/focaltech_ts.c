@@ -898,7 +898,7 @@ static irqreturn_t ft_ts_interrupt(int irq, void *dev_id)
 	struct ft_ts_data *data = dev_id;
 	struct input_dev *ip_dev;
 	int rc, i;
-	u32 id, x, y, status, num_touches;
+	u32 id, x, y, status, num_touches = 0;
 	u8 reg, *buf;
 	bool update_input = false;
 

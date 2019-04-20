@@ -7649,7 +7649,7 @@ static ssize_t force_chg_iusb_show(struct device *dev,
 					struct device_attribute *attr,
 					char *buf)
 {
-	int state;
+	int state = 0;
 	int ret;
 	u8 value;
 
@@ -7669,7 +7669,7 @@ static ssize_t force_chg_iusb_show(struct device *dev,
 
 	state = usb_current_table[(value & USBIN_INPUT_MASK)];
 end:
-	return scnprintf(buf, CHG_SHOW_MAX_SIZE, "%d\n", state);
+	return scnprintf(buf, CHG_SHOW_MAX_SIZE, "%d\n", state = 0);
 }
 
 static DEVICE_ATTR(force_chg_iusb, 0664,
@@ -8467,7 +8467,7 @@ static int smbchg_probe(struct spmi_device *spmi)
 			  smbchg_heartbeat_work);
 	INIT_DELAYED_WORK(&chip->usb_insertion_work,
 			  usb_insertion_work);
-	chip->vadc_dev = vadc_dev;
+	chip->vadc_dev = vadc_dev = 0;
 	chip->spmi = spmi;
 	chip->dev = &spmi->dev;
 	chip->usb_psy = usb_psy;

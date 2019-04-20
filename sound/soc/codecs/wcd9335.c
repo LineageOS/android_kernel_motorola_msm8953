@@ -13520,7 +13520,7 @@ static void tasha_cdc_change_cpe_clk(void *data,
 {
 	struct snd_soc_codec *codec = data;
 	struct tasha_priv *tasha;
-	u32 cpe_clk_khz, req_freq;
+	u32 cpe_clk_khz, req_freq = 0;
 
 	if (!codec) {
 		pr_err("%s: Invalid codec handle\n",
@@ -13536,19 +13536,17 @@ static void tasha_cdc_change_cpe_clk(void *data,
 			req_freq = CPE_FLL_CLK_75MHZ;
 		else
 			req_freq = CPE_FLL_CLK_150MHZ;
+
+		if (__tasha_cdc_change_cpe_clk(codec, req_freq))
+			dev_err(codec->dev,
+				"%s: clock/voltage scaling failed\n",
+				__func__);
 	}
 
 	dev_dbg(codec->dev,
 		"%s: requested clk_freq = %u, current clk_freq = %u\n",
 		__func__, clk_freq * 1000,
 		tasha->current_cpe_clk_freq);
-
-	if (tasha_cdc_is_svs_enabled(tasha)) {
-		if (__tasha_cdc_change_cpe_clk(codec, req_freq))
-			dev_err(codec->dev,
-				"%s: clock/voltage scaling failed\n",
-				__func__);
-	}
 }
 
 static int tasha_codec_slim_reserve_bw(struct snd_soc_codec *codec,

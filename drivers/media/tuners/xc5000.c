@@ -1130,7 +1130,7 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
 	const struct xc5000_fw_cfg *desired_fw = xc5000_assign_firmware(priv->chip_id);
 	const struct firmware *fw;
 	int ret, i;
-	u16 pll_lock_status;
+	u16 pll_lock_status = 0;
 	u16 fw_ck;
 
 	cancel_delayed_work(&priv->timer_sleep);

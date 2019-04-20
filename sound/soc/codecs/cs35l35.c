@@ -616,7 +616,7 @@ static int cs35l35_hw_params(struct snd_pcm_substream *substream,
 	struct classh_cfg *classh = &cs35l35->pdata.classh_algo;
 	int srate = params_rate(params);
 	u8 sp_sclks;
-	int audin_format;
+	int audin_format = 0;
 	int errata_chk;
 
 	int clk_ctl = cs35l35_get_clk_config(cs35l35->sysclk, srate);
