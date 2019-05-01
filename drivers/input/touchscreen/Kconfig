@@ -1239,11 +1239,11 @@ config TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE_MMI
 	  This enables support for firmware update for Synaptics DSX
 	  touchscreens via the MMI design.
 
-config TOUCHSCREEN_HIMAX_CHIPSET
-	bool "Himax touchpanel CHIPSET"
+config TOUCHSCREEN_HIMAX_MMI
+	bool "Himax MMI touchpanel"
 	depends on I2C
 	help
-	  Say Y here if you have a Himax CHIPSET touchscreen.
+	  Say Y here if you have a Himax MMI touchscreen.
 	  HIMAX controllers are multi touch controllers which can
 	  report 10 touches at a time.
 
@@ -1297,10 +1297,13 @@ config TOUCHSCREEN_HIMAX_CHIPSET
 
           If unsure, say N.
 
+if TOUCHSCREEN_HIMAX_CHIPSET
 source "drivers/input/touchscreen/hxchipset/Kconfig"
-
+endif
 source "drivers/input/touchscreen/gt9xx_mmi/Kconfig"
+if TOUCHSCREEN_HIMAX_MMI
 source "drivers/input/touchscreen/himax_mmi/Kconfig"
+endif
 source "drivers/input/touchscreen/nova_mmi/Kconfig"
 source "drivers/input/touchscreen/ilitek_mmi/Kconfig"
 
