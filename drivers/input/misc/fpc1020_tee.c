@@ -20,7 +20,6 @@
 #include <linux/of_gpio.h>
 #include <linux/regulator/consumer.h>
 #include <linux/spi/spi.h>
-#include <linux/wakelock.h>
 #include <linux/notifier.h>
 
 #define FPC_DOWN_EVENT_ID 48
@@ -136,7 +135,6 @@ struct fpc1020_data {
 	struct clk *iface_clk;
 	struct clk *core_clk;
 	struct regulator *vreg[ARRAY_SIZE(vreg_conf)];
-	struct wake_lock wlock;
 
 	struct notifier_block nb;
 
@@ -145,7 +143,6 @@ struct fpc1020_data {
 	int irq_gpio;
 	int rst_gpio;
 	int irq_num;
-	int wlock_time;
 	int clocks_enabled;
 	int clocks_suspended;
 
@@ -217,7 +214,6 @@ static int __set_clks(struct fpc1020_data *fpc1020, bool enable)
 
 	if (enable) {
 		dev_dbg(fpc1020->dev, "setting clk rates\n");
-		wake_lock(&fpc1020->wlock);
 		rc = clk_set_rate(fpc1020->core_clk,
 				fpc1020->spi->max_speed_hz);
 		if (rc) {
@@ -252,7 +248,6 @@ static int __set_clks(struct fpc1020_data *fpc1020, bool enable)
 		dev_dbg(fpc1020->dev, "disabling clks\n");
 		clk_disable_unprepare(fpc1020->iface_clk);
 		clk_disable_unprepare(fpc1020->core_clk);
-		wake_unlock(&fpc1020->wlock);
 	}
 
 out:
@@ -372,7 +367,7 @@ static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 {
 	struct fpc1020_data *fpc1020 = handle;
 
-	wake_lock_timeout(&fpc1020->wlock, msecs_to_jiffies(fpc1020->wlock_time));
+	pm_wakeup_event(fpc1020->dev, 5000);
 	dev_dbg(fpc1020->dev, "%s\n", __func__);
 	fpc1020->irq_cnt++;
 	sysfs_notify(&fpc1020->dev->kobj, NULL, dev_attr_irq.attr.name);
@@ -464,7 +459,7 @@ static int fpc1020_probe(struct spi_device *spi)
 		goto exit;
 	}
 
-	wake_lock_init(&fpc1020->wlock, WAKE_LOCK_SUSPEND, "fpc1020");
+	device_init_wakeup(dev, true);
 
 	fpc1020->irq_cnt = 0;
 	fpc1020->clocks_enabled = 0;
@@ -481,15 +476,8 @@ static int fpc1020_probe(struct spi_device *spi)
 	}
 	dev_dbg(dev, "requested irq %d\n", gpio_to_irq(fpc1020->irq_gpio));
 
-	rc = of_property_read_u32(np, "fpc,wakelock_time", &fpc1020->wlock_time);
-	if (rc) {
-		dev_err(dev, "Unable to read wakelock time\n");
-		fpc1020->wlock_time = 1000;
-	}
-
 	/* Request that the interrupt should be wakeable */
 	enable_irq_wake(gpio_to_irq(fpc1020->irq_gpio));
-
 
 	rc = sysfs_create_group(&dev->kobj, &attribute_group);
 	if (rc) {
@@ -520,7 +508,6 @@ static int fpc1020_remove(struct spi_device *spi)
 	(void)vreg_setup(fpc1020, "vdd_io", false);
 	(void)vreg_setup(fpc1020, "vcc_spi", false);
 	(void)vreg_setup(fpc1020, "vdd_ana", false);
-	wake_lock_destroy(&fpc1020->wlock);
 	dev_info(&spi->dev, "%s\n", __func__);
 	return 0;
 }
