@@ -81,16 +81,19 @@
 		gpios = <&tlmm 28 0>,
 			<&tlmm 27 0>,
 			<&tlmm 40 0>,
-			<&tlmm 39 0>;
+			<&tlmm 39 0>,
+			<&tlmm 13 0>;
 		qcom,gpio-vio = <1>;
 		qcom,gpio-reset = <2>;
 		qcom,gpio-vana = <3>;
-		qcom,gpio-req-tbl-num = <0 1 2 3>;
-		qcom,gpio-req-tbl-flags = <1 0 0 0>;
+		qcom,gpio-vdig = <4>;
+		qcom,gpio-req-tbl-num = <0 1 2 3 4>;
+		qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
 		qcom,gpio-req-tbl-label = "CAMIF_MCLK2",
 			"CAM_VIO2",
 			"CAM_RESET2",
-			"CAM_VANA2";
+			"CAM_VANA2",
+			"CAM_VDIG2";
 		qcom,cci-master = <0>;
 		status = "ok";
 		clocks = <&clock_gcc clk_mclk2_clk_src>,
@@ -166,16 +169,19 @@
 		gpios = <&tlmm 28 0>,
 			<&tlmm 27 0>,
 			<&tlmm 40 0>,
-			<&tlmm 39 0>;
+			<&tlmm 39 0>,
+			<&tlmm 13 0>;
 		qcom,gpio-vio = <1>;
 		qcom,gpio-reset = <2>;
 		qcom,gpio-vana = <3>;
-		qcom,gpio-req-tbl-num = <0 1 2 3>;
-		qcom,gpio-req-tbl-flags = <1 0 0 0>;
+		qcom,gpio-vdig = <4>;
+		qcom,gpio-req-tbl-num = <0 1 2 3 4>;
+		qcom,gpio-req-tbl-flags = <1 0 0 0 0>;
 		qcom,gpio-req-tbl-label = "CAMIF_MCLK2",
 			"CAM_VIO2",
 			"CAM_RESET2",
-			"CAM_VANA2";
+			"CAM_VANA2",
+			"CAM_VDIG2";
 		qcom,sensor-position = <1>;
 		qcom,sensor-mode = <0>;
 		qcom,cci-master = <0>;
@@ -315,12 +321,12 @@
 		cam_sensor_front1_default: cam_sensor_front1_default {
 			/* VIO, RESET, VANA2 */
 			mux {
-				pins = "gpio27", "gpio40", "gpio39";
+				pins = "gpio27", "gpio40", "gpio39", "gpio13";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio27", "gpio40", "gpio39";
+				pins = "gpio27", "gpio40", "gpio39", "gpio13";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
@@ -329,12 +335,12 @@
 		cam_sensor_front1_sleep: cam_sensor_front1_sleep {
 			/* VIO, RESET, VANA2 */
 			mux {
-				pins = "gpio27", "gpio40", "gpio39";
+				pins = "gpio27", "gpio40", "gpio39", "gpio13";
 				function = "gpio";
 			};
 
 			config {
-				pins = "gpio27", "gpio40", "gpio39";
+				pins = "gpio27", "gpio40", "gpio39", "gpio13";
 				bias-disable; /* No PULL */
 				drive-strength = <2>; /* 2 MA */
 			};
