@@ -61,7 +61,6 @@
 	et320: et320{
 		compatible = "egistec,et320";
 		status = "ok";
-		reg = <0>;
 		interrupt-parent = <&tlmm>;
 		interrupts = <48 0x0>;
 		egistec,gpio_irq    = <&tlmm 48 0x1>;
