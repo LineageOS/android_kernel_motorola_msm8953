@@ -1,0 +1,10 @@
+#
+# Moto DTV drivers
+#
+menu "Moto DTV drivers"
+config MOTO_DTV_FC8300
+	tristate "Motorola FC8300 DTV support"
+	default n
+	help
+	  This option enables support for the Motorola FC8300 DTV device.
+endmenu

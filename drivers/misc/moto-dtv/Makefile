@@ -4,7 +4,7 @@ EXTRA_CFLAGS += -I$(PWD)
 KDIR = /home/android/workspace/S5PV210/kernel
 ODIR = $(PWD)
 
-obj-m = isdbt.o
+obj-$(CONFIG_MOTO_DTV_FC8300) = isdbt.o
 isdbt-objs = $(OBJS)
 
 all:
