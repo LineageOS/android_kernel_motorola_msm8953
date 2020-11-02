@@ -1359,7 +1359,9 @@ CONFIG_FUSB302=y
 #
 # Moto Mod drivers
 #
-# CONFIG_MOTOMODS is not set
+CONFIG_MOTOMODS=y
+# CONFIG_MODS_2ND_GEN is not set
+# CONFIG_MODS_USE_EXTCODEC_MI2S is not set
 
 #
 # Moto DTV drivers
