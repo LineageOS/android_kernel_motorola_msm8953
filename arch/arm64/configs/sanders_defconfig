@@ -1363,7 +1363,7 @@ CONFIG_FUSB302=y
 #
 # Moto DTV drivers
 #
-# CONFIG_MOTO_DTV_FC8300 is not set
+CONFIG_MOTO_DTV_FC8300=y
 
 #
 # SCSI device support
