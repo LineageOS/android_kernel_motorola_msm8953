@@ -2234,21 +2234,22 @@ struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 	}
 #ifdef CONFIG_SND_SOC_MARLEY
 	else if (!strncmp(card->name, "msm8952-marley-card", 19)) {
-		int ret, len_2a, len_2b;
+		int ret, len_3a, len_3b;
 		const char *l35_cpu_dai_name;
 
 		if (of_property_read_bool(dev->of_node, "qcom,albus-audio"))
 			albus_hw = true;
 		len1 = ARRAY_SIZE(msm8952_common_fe_dai);
 		len2 = len1 + ARRAY_SIZE(msm8952_marley_fe_dai);
-		len_2a = len2 + ARRAY_SIZE(msm8952_common_be_dai);
+		len3 = len2 + ARRAY_SIZE(msm8952_common_misc_fe_dai);
+		len_3a = len3 + ARRAY_SIZE(msm8952_common_be_dai);
 		if (albus_hw)
-			len_2b = len_2a +
+			len_3b = len_3a +
 				ARRAY_SIZE(msm8952_marley_l35_dai_link);
 		else
-			len_2b = len_2a +
+			len_3b = len_3a +
 				ARRAY_SIZE(msm8952_marley_l34_dai_link);
-		len3 = len_2b + ARRAY_SIZE(msm8952_marley_be_dai);
+		len4 = len_3b + ARRAY_SIZE(msm8952_marley_be_dai);
 		snd_soc_card_msm[MARLEY_CODEC].name = card->name;
 		card = &snd_soc_card_msm[MARLEY_CODEC];
 		memcpy(msm8952_marley_dai_links, msm8952_common_fe_dai,
@@ -2256,8 +2257,10 @@ struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 		memcpy(msm8952_marley_dai_links + len1,
 			msm8952_marley_fe_dai, sizeof(msm8952_marley_fe_dai));
 		memcpy(msm8952_marley_dai_links + len2,
+			msm8952_common_misc_fe_dai, sizeof(msm8952_common_misc_fe_dai));
+		memcpy(msm8952_marley_dai_links + len3,
 			msm8952_common_be_dai, sizeof(msm8952_common_be_dai));
-		memcpy(msm8952_marley_dai_links + len_2b,
+		memcpy(msm8952_marley_dai_links + len_3b,
 			msm8952_marley_be_dai, sizeof(msm8952_marley_be_dai));
 		msm8952_dai_links = msm8952_marley_dai_links;
 		if (albus_hw) {
@@ -2266,31 +2269,31 @@ struct snd_soc_card *populate_snd_card_dailinks(struct device *dev)
 			if (ret == 0)
 				msm8952_marley_l35_dai_link[0].cpu_dai_name =
 					l35_cpu_dai_name;
-			memcpy(msm8952_marley_dai_links + len_2a,
+			memcpy(msm8952_marley_dai_links + len_3a,
 				msm8952_marley_l35_dai_link,
 				sizeof(msm8952_marley_l35_dai_link));
 			#ifdef CONFIG_SND_SOC_MODS_CODEC_SHIM
-				memcpy(msm8952_marley_dai_links + len3,
+				memcpy(msm8952_marley_dai_links + len4,
 					msm8952_marley_albus_mods_be_dai,
 					sizeof(msm8952_marley_albus_mods_be_dai));
-				len4 = len3 + ARRAY_SIZE(msm8952_marley_mods_be_dai);
+				len5 = len4 + ARRAY_SIZE(msm8952_marley_mods_be_dai);
 			#else
-				len4 = len3;
+				len5 = len4;
 			#endif
 		} else {
-			memcpy(msm8952_marley_dai_links + len_2a,
+			memcpy(msm8952_marley_dai_links + len_3a,
 				msm8952_marley_l34_dai_link,
 				sizeof(msm8952_marley_l34_dai_link));
 			#ifdef CONFIG_SND_SOC_MODS_CODEC_SHIM
-				memcpy(msm8952_marley_dai_links + len3,
+				memcpy(msm8952_marley_dai_links + len4,
 					msm8952_marley_mods_be_dai,
 					sizeof(msm8952_marley_mods_be_dai));
-				len4 = len3 + ARRAY_SIZE(msm8952_marley_mods_be_dai);
+				len5 = len4 + ARRAY_SIZE(msm8952_marley_mods_be_dai);
 			#else
-				len4 = len3;
+				len5 = len4;
 			#endif
 		}
-		len5 = len4;
+		len6 = len5;
 	}
 #endif
 
