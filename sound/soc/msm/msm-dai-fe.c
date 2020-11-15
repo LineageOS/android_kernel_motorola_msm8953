@@ -20,11 +20,11 @@
 #include <sound/pcm.h>
 #include <sound/soc.h>
 
-/* [HACK] Load sound struct based on socId */
-#include <soc/qcom/socinfo.h>
-#define IS_MSM8940 (313)
+/* [HACK] Load sound struct based on model */
 static inline bool get_soc(void){
-	return (IS_MSM8940 == socinfo_get_id()) ? true : false;
+	if ((of_machine_is_compatible("qcom,msm8917-james")) || (of_machine_is_compatible("qcom,msm8917-pettyl")) || (of_machine_is_compatible("qcom,msm8920-james")) || (of_machine_is_compatible("qcom,msm8920-jeter")) || (of_machine_is_compatible("qcom,msm8940-hannah")))
+		return true;
+	return false;
 }
 
 static struct snd_soc_dai_ops msm_fe_dai_ops = {};
