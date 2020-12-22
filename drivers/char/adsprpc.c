@@ -80,6 +80,7 @@
 #define FASTRPC_STATIC_HANDLE_KERNEL (1)
 
 #define IS_CACHE_ALIGNED(x) (((x) & ((L1_CACHE_BYTES)-1)) == 0)
+#define FASTRPC_STATIC_HANDLE_KERNEL (1)
 
 static void file_free_work_handler(struct work_struct *w);
 
@@ -1563,6 +1564,15 @@ static int fastrpc_internal_invoke(struct fastrpc_file *fl, uint32_t mode,
 		VERIFY(err, invoke->handle != FASTRPC_STATIC_HANDLE_KERNEL);
 		if (err) {
 			pr_err("adsprpc: ERROR: %s: user application %s trying to send a kernel RPC message to channel %d",
+				__func__, current->comm, cid);
+			goto bail;
+		}
+	}
+
+	if (!kernel) {
+		VERIFY(err, invoke->handle != FASTRPC_STATIC_HANDLE_KERNEL);
+		if (err) {
+			pr_err("adsprpc: ERROR: %s: user application %s trying to send a kernel RPC message to channel %d\n",
 				__func__, current->comm, cid);
 			goto bail;
 		}
