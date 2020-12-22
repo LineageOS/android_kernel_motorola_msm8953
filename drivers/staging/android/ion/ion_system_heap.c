@@ -72,7 +72,7 @@ struct page_info {
 	struct list_head list;
 };
 
-int ion_heap_is_system_heap_type(enum ion_heap_type type)
+static int ion_heap_is_system_heap_type(enum ion_heap_type type)
 {
 	return type == ((enum ion_heap_type)ION_HEAP_TYPE_SYSTEM);
 }

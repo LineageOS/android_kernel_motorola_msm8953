@@ -320,7 +320,7 @@ static void *ion_secure_cma_map_kernel(struct ion_heap *heap,
 			__func__);
 		return NULL;
 	}
-	return ion_heap_map_kernel(heap, buffer);
+	return ion_cma_map_kernel(heap, buffer);
 }
 
 static int ion_secure_cma_map_user(struct ion_heap *mapper,
@@ -332,7 +332,7 @@ static int ion_secure_cma_map_user(struct ion_heap *mapper,
 			__func__);
 		return -EINVAL;
 	}
-	return ion_heap_map_user(mapper, buffer, vma);
+	return ion_cma_mmap(mapper, buffer, vma);
 }
 
 static struct ion_heap_ops ion_secure_cma_ops = {
