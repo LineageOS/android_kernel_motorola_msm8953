@@ -677,8 +677,7 @@ static int32_t msm_flash_low(
 	/* Turn on flash triggers */
 	for (i = 0; i < flash_ctrl->torch_num_sources; i++) {
 		if (flash_ctrl->torch_trigger[i]) {
-			if (flash_data->position == FRONT_FLASH &&
-			    flash_ctrl->torch_alt_max_current)
+			if (flash_data->position == FRONT_FLASH)
 				max_current =
 					flash_ctrl->torch_alt_max_current[i];
 			else
@@ -689,8 +688,7 @@ static int32_t msm_flash_low(
 				max_current) {
 				curr = flash_data->flash_current[i];
 			} else {
-				if (flash_data->position == FRONT_FLASH &&
-				    flash_ctrl->torch_alt_op_current)
+				if (flash_data->position == FRONT_FLASH)
 					curr =
 					  flash_ctrl->torch_alt_op_current[i];
 				else
@@ -727,8 +725,7 @@ static int32_t msm_flash_high(
 	/* Turn on flash triggers */
 	for (i = 0; i < flash_ctrl->flash_num_sources; i++) {
 		if (flash_ctrl->flash_trigger[i]) {
-			if (flash_data->position == FRONT_FLASH &&
-			    flash_ctrl->flash_alt_max_current)
+			if (flash_data->position == FRONT_FLASH)
 				max_current =
 					flash_ctrl->flash_alt_max_current[i];
 			else
@@ -739,8 +736,7 @@ static int32_t msm_flash_high(
 				max_current) {
 				curr = flash_data->flash_current[i];
 			} else {
-				if (flash_data->position == FRONT_FLASH &&
-				    flash_ctrl->flash_alt_op_current)
+				if (flash_data->position == FRONT_FLASH)
 					curr =
 					   flash_ctrl->flash_alt_op_current[i];
 				else
