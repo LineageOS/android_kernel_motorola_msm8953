@@ -1452,7 +1452,7 @@ clip_area:
 }
 
 /* ASCII names order MUST match enum */
-static const char const *ascii_names[] = { "aod", "stats", "folio",
+static const char *ascii_names[] = { "aod", "stats", "folio",
 	"charger", "wakeup", "fps", "query", "runtime", "na"
 };
 
