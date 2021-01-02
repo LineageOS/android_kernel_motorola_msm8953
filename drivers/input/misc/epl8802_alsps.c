@@ -1734,7 +1734,7 @@ static void epl_sensor_intr_als_report_lux(void)
 				}
 				normal_value = gain_value * als_dynamic_intt_value[dynamic_intt_idx] / als_dynamic_intt_value[1];
 
-				if ((als == 0)) /* Note: als =0 is nothing */
+				if (als == 0) /* Note: als =0 is nothing */
 					low_thd = 0;
 				else
 					low_thd = (*(als_adc_intr_level + (als-1)) + 1) * normal_value;
