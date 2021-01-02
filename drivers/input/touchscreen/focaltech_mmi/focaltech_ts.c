@@ -2946,7 +2946,7 @@ static int ft_get_dt_coords(struct device *dev, char *name,
 }
 
 /* ASCII names order MUST match enum */
-static const char const *ascii_names[] = {"charger", "fps", "na"};
+static const char *ascii_names[] = {"charger", "fps", "na"};
 
 static int ft_modifier_name2id(const char *name)
 {
