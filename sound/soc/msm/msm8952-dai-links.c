@@ -31,11 +31,13 @@ static struct snd_soc_card snd_soc_card_msm[MAX_CODECS];
 static struct snd_soc_card snd_soc_card_msm_card;
 
 #ifdef CONFIG_SND_SOC_MARLEY
+#ifdef CONFIG_SND_SOC_MODS_CODEC_SHIM
 static struct snd_soc_ops msm8952_quat_mi2s_be_ops = {
 	.startup = msm_quat_mi2s_snd_startup,
 	.hw_params = msm_quat_mi2s_snd_hw_params,
 	.shutdown = msm_quat_mi2s_snd_shutdown,
 };
+#endif
 #endif
 
 static struct snd_soc_ops msm8952_quin_mi2s_be_ops = {
@@ -512,6 +514,7 @@ static struct snd_soc_dai_link msm8952_marley_l35_dai_link[] = {
 	}
 };
 
+#ifdef CONFIG_SND_SOC_MODS_CODEC_SHIM
 static struct snd_soc_dai_link msm8952_marley_mods_be_dai[] = {
 	{
 		/* mods I2S in and out */
@@ -544,6 +547,7 @@ static struct snd_soc_dai_link msm8952_marley_mods_be_dai[] = {
 		.ignore_suspend = 1,
 	}
 };
+#endif
 
 #ifdef CONFIG_SND_SOC_MODS_CODEC_SHIM
 static struct snd_soc_dai_link msm8952_marley_albus_mods_be_dai[] = {
@@ -1982,7 +1986,9 @@ ARRAY_SIZE(msm8952_common_fe_dai) +
 ARRAY_SIZE(msm8952_marley_fe_dai) +
 ARRAY_SIZE(msm8952_common_be_dai) +
 ARRAY_SIZE(msm8952_marley_be_dai) +
+#ifdef CONFIG_SND_SOC_MODS_CODEC_SHIM
 ARRAY_SIZE(msm8952_marley_mods_be_dai) +
+#endif
 ARRAY_SIZE(msm8952_hdmi_dba_dai_link) +
 ARRAY_SIZE(msm8952_marley_l34_dai_link) +
 ARRAY_SIZE(msm8952_marley_l35_dai_link)];
