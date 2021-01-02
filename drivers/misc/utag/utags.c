@@ -1788,7 +1788,7 @@ static int utag_get_bootarg(char *key, char **value)
 		if (!bootargs_str)
 			goto err_putnode;
 	}
-	strlcpy(bootargs_str, bootargs_ptr, strlen(bootargs_ptr) + 1);
+	strlcpy(bootargs_str, bootargs_ptr, strlen(bootargs_str) + 1);
 
 	idx = strnstr(bootargs_str, key, strlen(bootargs_str));
 	if (idx) {
