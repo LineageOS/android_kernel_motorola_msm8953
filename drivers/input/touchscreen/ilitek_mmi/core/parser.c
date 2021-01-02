@@ -187,7 +187,7 @@ static int get_ini_phy_data(char *data, int fsize)
 		}
 
 		/* copy section's name without square brackets to its real buffer */
-		strlcpy(ilitek_ini_file_data[g_ini_items].pSectionName, tmpSectionName, strlen(tmpSectionName)+1);
+		strlcpy(ilitek_ini_file_data[g_ini_items].pSectionName, tmpSectionName, strlen(ilitek_ini_file_data[g_ini_items].pSectionName)+1);
 		ilitek_ini_file_data[g_ini_items].iSectionNameLen = strlen(tmpSectionName);
 
 		isEqualSign = 0;
