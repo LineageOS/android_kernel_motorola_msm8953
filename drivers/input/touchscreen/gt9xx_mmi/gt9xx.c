@@ -1966,7 +1966,7 @@ static s8 gtp_request_input_dev(struct goodix_ts_data *ts)
 */
 #ifdef CONFIG_OF
 /* ASCII names order MUST match enum */
-static const char const *ascii_names[] = {"charger", "na"};
+static const char *ascii_names[] = {"charger", "na"};
 
 static int goodix_modifier_name2id(const char *name)
 {
