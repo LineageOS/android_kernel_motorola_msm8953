@@ -243,7 +243,7 @@ static int parse_touch_package_v5_0(uint8_t pid)
 		ipio_debug(DEBUG_FINGER_REPORT, " **** Parsing DEMO packets : 0x%x ****\n", pid);
 
 		for (i = 0 ; i < ipd->MAX_TOUCH_NUM; i++) {
-			if ((g_fr_node->data[(4 * i) + 1] == 0xFF) && (g_fr_node->data[(4 * i) + 2] && 0xFF)
+			if ((g_fr_node->data[(4 * i) + 1] == 0xFF) && (g_fr_node->data[(4 * i) + 2] & 0xFF)
 				&& (g_fr_node->data[(4 * i) + 3] == 0xFF)) {
 				if (ipd->MT_B_TYPE)
 					g_current_touch[i] = 0;
@@ -284,7 +284,7 @@ static int parse_touch_package_v5_0(uint8_t pid)
 		ipio_debug(DEBUG_FINGER_REPORT, "Length = %d\n", (g_fr_node->data[1] << 8 | g_fr_node->data[2]));
 
 		for (i = 0 ; i < ipd->MAX_TOUCH_NUM; i++) {
-			if ((g_fr_node->data[(3 * i) + 5] == 0xFF) && (g_fr_node->data[(3 * i) + 6] && 0xFF)
+			if ((g_fr_node->data[(3 * i) + 5] == 0xFF) && (g_fr_node->data[(3 * i) + 6] & 0xFF)
 				&& (g_fr_node->data[(3 * i) + 7] == 0xFF)) {
 				if (ipd->MT_B_TYPE)
 					g_current_touch[i] = 0;
