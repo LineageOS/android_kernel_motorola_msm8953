@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 3.18.124 Kernel Configuration
+# Linux/arm64 3.18.140 Kernel Configuration
 #
 CONFIG_ARM64=y
 CONFIG_64BIT=y
@@ -505,6 +505,7 @@ CONFIG_COMPAT=y
 CONFIG_KUSER_HELPERS=y
 CONFIG_COMPAT_VDSO=y
 CONFIG_CROSS_COMPILE_ARM32=""
+CONFIG_KEYS_COMPAT=y
 
 #
 # Power management options
@@ -2049,6 +2050,7 @@ CONFIG_UNIX98_PTYS=y
 # CONFIG_NOZOMI is not set
 # CONFIG_N_GSM is not set
 # CONFIG_TRACE_SINK is not set
+CONFIG_LDISC_AUTOLOAD=y
 # CONFIG_DEVMEM is not set
 # CONFIG_DEVKMEM is not set
 
@@ -2110,7 +2112,6 @@ CONFIG_DIAG_DEBUG=y
 CONFIG_HW_RANDOM=y
 # CONFIG_HW_RANDOM_TIMERIOMEM is not set
 CONFIG_HW_RANDOM_MSM_LEGACY=y
-# CONFIG_R3964 is not set
 # CONFIG_APPLICOM is not set
 
 #
@@ -4882,7 +4883,6 @@ CONFIG_EARLY_PRINTK=y
 # Security options
 #
 CONFIG_KEYS=y
-CONFIG_KEYS_COMPAT=y
 # CONFIG_PERSISTENT_KEYRINGS is not set
 # CONFIG_BIG_KEYS is not set
 CONFIG_ENCRYPTED_KEYS=y
