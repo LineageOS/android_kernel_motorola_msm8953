@@ -1774,7 +1774,7 @@ static void do_header_and_snapshot(struct kgsl_device *device,
 	gpu_ft_report_pos = 0;
 	pr_gpu_ft_report("GPU FT: fault = %d\n%s[%d]\n", fault,
 		cmdbatch ? _kgsl_context_comm(cmdbatch->context) : "NULL",
-		cmdbatch ? cmdbatch->context->proc_priv->pid : 0);
+		cmdbatch ? pid_nr(cmdbatch->context->proc_priv->pid) : 0);
 
 	path = kobject_get_path(&device->snapshot_kobj, GFP_KERNEL);
 	snprintf(sys_path, sizeof(sys_path), "/sys%s/dump", path);
