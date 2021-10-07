@@ -82,6 +82,7 @@
 
 #define ESR_MAX				300000
 #define ESR_MIN				5000
+#define FG_RATE_LIM_MS (2 * MSEC_PER_SEC)
 
 /* Debug Flag Definitions */
 enum {
@@ -138,6 +139,11 @@ struct fg_mem_data {
 	u8	offset;
 	unsigned int len;
 	int	value;
+};
+
+struct fg_saved_data {
+	union power_supply_propval val;
+	unsigned long last_req_expires;
 };
 
 struct fg_learning_data {
@@ -649,6 +655,7 @@ struct fg_chip {
 	bool			shutdown_in_process;
 	bool			nom_cap_unbound;
 	bool			low_batt_temp_comp;
+	struct fg_saved_data	saved_data[POWER_SUPPLY_PROP_MAX];
 };
 
 /* FG_MEMIF DEBUGFS structures */
@@ -4718,7 +4725,36 @@ static int fg_power_get_property(struct power_supply *psy,
 				       union power_supply_propval *val)
 {
 	struct fg_chip *chip = container_of(psy, struct fg_chip, bms_psy);
+	struct fg_saved_data *sd = chip->saved_data + psp;
 	bool vbatt_low_sts;
+
+	switch (psp) {
+	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
+	case POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN:
+	case POWER_SUPPLY_PROP_CYCLE_COUNT_ID:
+	case POWER_SUPPLY_PROP_CHARGE_NOW:
+	case POWER_SUPPLY_PROP_CHARGE_FULL:
+	case POWER_SUPPLY_PROP_SOC_REPORTING_READY:
+	case POWER_SUPPLY_PROP_HI_POWER:
+	case POWER_SUPPLY_PROP_BATTERY_TYPE:
+	case POWER_SUPPLY_PROP_UPDATE_NOW:
+	case POWER_SUPPLY_PROP_IGNORE_FALSE_NEGATIVE_ISENSE:
+	case POWER_SUPPLY_PROP_ENABLE_JEITA_DETECTION:
+	case POWER_SUPPLY_PROP_BATTERY_INFO:
+	case POWER_SUPPLY_PROP_BATTERY_INFO_ID:
+		/* These props don't require a fg query; don't ratelimit them */
+		break;
+	default:
+		if (!sd->last_req_expires)
+			break;
+
+		if (!is_input_present(chip) &&
+			time_before(jiffies, sd->last_req_expires)) {
+			*val = sd->val;
+			return 0;
+		}
+		break;
+	}
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_BATTERY_TYPE:
@@ -4825,6 +4861,8 @@ static int fg_power_get_property(struct power_supply *psy,
 		return -EINVAL;
 	}
 
+	sd->val = *val;
+	sd->last_req_expires = jiffies + msecs_to_jiffies(FG_RATE_LIM_MS);
 	return 0;
 }
 
