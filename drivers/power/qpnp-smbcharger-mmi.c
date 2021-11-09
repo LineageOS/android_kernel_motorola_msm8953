@@ -11338,10 +11338,13 @@ static void smbchg_heartbeat_work(struct work_struct *work)
 	else
 		chip->dc_target_current_ma = chip->dc_ebmax_current_ma;
 
-	rc = smbchg_check_dcin_voltage(chip, &dcin_mv);
-	if (rc == -EINVAL) {
-		dcin_mv = 0;
-		SMB_WARN(chip, "Failed to get DCIN\n");
+	dcin_mv = 0;
+	if(chip->usb_present ||
+		   chip->usbeb_present ){
+		rc = smbchg_check_dcin_voltage(chip, &dcin_mv);
+		if (rc == -EINVAL) {
+			SMB_WARN(chip, "Failed to get DCIN\n");
+		}
 	}
 
 	prev_step = chip->stepchg_state;
@@ -11787,7 +11790,8 @@ static void smbchg_heartbeat_work(struct work_struct *work)
 	}
 
 	if (!chip->usb_present || !chip->hvdcp3_confirmed)
-		vbus_inc_mv = VBUS_INPUT_VOLTAGE_TARGET;
+		goto end_hb_hvdcp;
+
 
 	rc = qpnp_vadc_read(chip->usb_vadc_dev, USBIN, &results);
 	if (rc)
